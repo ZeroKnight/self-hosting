@@ -1,0 +1,15 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Immich Machine Learning Container
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/immich.env
+Restart=on-failure
+
+[Container]
+Pod=immich.pod
+Image=ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION}-cuda
+Volume=immich-mlcache.volume:/cache
+EnvironmentFile=./immich.env
+AddDevice=nvidia.com/gpu=all

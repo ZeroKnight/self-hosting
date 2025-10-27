@@ -1,0 +1,6 @@
+# vim: ft=systemd
+
+[Unit]
+Description=LubeLogger Keys Volume
+
+[Volume]

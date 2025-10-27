@@ -1,0 +1,15 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Immich Redis Container
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/immich.env
+Restart=on-failure
+
+[Container]
+Pod=immich.pod
+Image=docker.io/valkey/valkey:8-bookworm
+
+HealthCmd=redis-cli ping || exit 1
+HealthInterval=2m

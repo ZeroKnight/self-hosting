@@ -4,3 +4,6 @@
 # definitions in them that include password hashes.
 *-passwd.bu
 *-passwd.butane
+
+*.env
+containers/opencloud/opencloud-compose/

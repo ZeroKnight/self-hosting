@@ -1,0 +1,18 @@
+# vim: ft=systemd
+
+[Unit]
+Description=UpSnap Wake on LAN Container
+
+[Container]
+Image=ghcr.io/seriousm4x/upsnap:5
+Network=host
+Volume=upsnap.volume:/app/pb_data
+
+Environment=UPSNAP_PING_PRIVILEGED=false
+AddCapability=CAP_NET_RAW
+
+HealthCmd=curl -fs "http://localhost:8090/api/health" || exit 1
+HealthInterval=5m
+
+[Install]
+WantedBy=multi-user.target default.target

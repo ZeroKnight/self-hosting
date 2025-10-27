@@ -1,0 +1,6 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Kavita Config Volume
+
+[Volume]

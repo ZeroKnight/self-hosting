@@ -1,0 +1,21 @@
+# vim: ft=systemd
+
+[Unit]
+Description=OpenCloud Server
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/opencloud.env
+Restart=on-failure
+
+[Container]
+Pod=opencloud.pod
+Image=docker.io/opencloudeu/opencloud-rolling:3
+Entrypoint=["/bin/sh"]
+Exec=-c 'opencloud init || true; opencloud server'
+
+EnvironmentFile=%h/.config/containers/systemd/opencloud.env
+Secret=opencloud-idm-password,type=env,target=IDM_ADMIN_PASSWORD
+
+Volume=%h/opencloud-data:/var/lib/opencloud
+Volume=%h/.config/opencloud:/etc/opencloud
+Volume=%h/.local/share/opencloud/apps:/var/lib/opencloud/web/assets/apps

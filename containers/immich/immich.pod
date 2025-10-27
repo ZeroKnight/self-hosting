@@ -1,0 +1,11 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Immich Pod
+
+[Pod]
+PublishPort=2283:2283
+ShmSize=128M
+
+[Install]
+WantedBy=multi-user.target default.target

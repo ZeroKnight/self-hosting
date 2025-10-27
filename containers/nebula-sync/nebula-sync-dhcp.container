@@ -1,0 +1,27 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Nebula Sync Container (DHCP Only Sync)
+
+[Container]
+Image=ghcr.io/lovelaze/nebula-sync:v0.11.0
+Network=host
+
+Secret=nebula-sync-primary,uid=1001,mode=400
+Secret=nebula-sync-replicas,uid=1001,mode=400
+
+Environment=PRIMARY_FILE=/run/secrets/nebula-sync-primary
+Environment=REPLICAS_FILE=/run/secrets/nebula-sync-replicas
+Environment=FULL_SYNC=false
+
+# TODO: Re-enable this (and nebula-sync-full) after a week or so.
+# i.e. once everything stops trying to renew from the secondary
+Environment=SYNC_CONFIG_DHCP=false
+
+Environment=SYNC_GRAVITY_DHCP_LEASES=true
+Environment=RUN_GRAVITY=false
+Environment=TZ=America/Los_Angeles
+Environment=CLIENT_RETRY_DELAY_SECONDS=10
+
+[Install]
+WantedBy=multi-user.target default.target

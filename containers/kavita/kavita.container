@@ -1,0 +1,20 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Kavita Digital Library Container
+Requires=var-mnt-media.mount
+After=var-mnt-media.mount
+
+[Container]
+Image=ghcr.io/kareadita/kavita:latest
+PublishPort=5000:5000
+Environment=TZ=America/Los_Angeles
+
+Volume=/var/mnt/media/books:/books
+Volume=kavita-config.volume:/kavita/config
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target default.target

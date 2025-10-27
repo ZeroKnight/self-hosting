@@ -1,0 +1,15 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Mazanoke Image Optimizer Container
+After=local-fs.target
+
+[Container]
+Image=ghcr.io/civilblur/mazanoke:latest
+PublishPort=3474:80
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target default.target

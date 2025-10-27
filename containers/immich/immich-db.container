@@ -1,0 +1,20 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Immich Database Container
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/immich.env
+Restart=on-failure
+
+[Container]
+Pod=immich.pod
+Image=ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+Volume=${DB_DATA_LOCATION}:/var/lib/postgresql/data
+ShmSize=128M
+
+EnvironmentFile=./immich.env
+Environment=POSTGRES_PASSWORD=${DB_PASSWORD}
+Environment=POSTGRES_USER=${DB_USERNAME}
+Environment=POSTGRES_DB=${DB_DATABASE_NAME}
+Environment=POSTGRES_INITDB_ARGS='--data-checksums'

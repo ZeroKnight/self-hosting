@@ -1,0 +1,25 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Immich Server Container
+
+Requires=var-mnt-media.mount
+After=var-mnt-media.mount
+
+Requires=immich-redis.container immich-db.container
+After=immich-redis.container immich-db.container
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/immich.env
+Restart=on-failure
+
+[Container]
+Pod=immich.pod
+Image=ghcr.io/immich-app/immich-server:${IMMICH_VERSION}
+EnvironmentFile=./immich.env
+
+Volume=/var/mnt/media/images/immich:/data
+Volume=/etc/localtime:/etc/localtime:ro
+
+[Install]
+WantedBy=multi-user.target default.target

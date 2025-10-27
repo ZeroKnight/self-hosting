@@ -1,0 +1,11 @@
+# vim: ft=systemd
+
+[Unit]
+Description=OpenCloud Pod
+
+[Pod]
+PodName=opencloud
+
+# NOTE: Currently behind reverse proxy
+Network=host
+# PublishPort=8000:9200

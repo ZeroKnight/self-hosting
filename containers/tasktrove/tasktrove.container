@@ -1,0 +1,12 @@
+# vim: ft=systemd
+
+[Unit]
+Description=TaskTrove Todo Manager Container
+
+[Container]
+Image=ghcr.io/dohsimpson/tasktrove:v0.8.0
+PublishPort=3000:3000
+Volume=tasktrove.volume:/app/data
+
+[Install]
+WantedBy=multi-user.target default.target
