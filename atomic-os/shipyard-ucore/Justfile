@@ -16,3 +16,9 @@ check target:
         quay.io/coreos/butane --check --strict --files-dir /files \
         < {{ target }}
     @echo '{{ GREEN }}Okay!{{ NORMAL }}'
+
+serve:
+    @echo '{{ CYAN }}Serving directory for ignition. Available configs:{{ YELLOW }}'
+    @ls -1 *.ign
+    @echo '{{ NORMAL }}'
+    -python3 -m http.server
