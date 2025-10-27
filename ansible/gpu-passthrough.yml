@@ -1,0 +1,112 @@
+# vim: ft=yaml.ansible
+
+# References:
+# - https://theorangeone.net/posts/lxc-nvidia-gpu-passthrough/
+# - https://pve.proxmox.com/pve-docs/pve-admin-guide.html#qm_pci_passthrough
+# - https://pve.proxmox.com/wiki/PCI_Passthrough
+# - https://forum.proxmox.com/threads/pci-gpu-passthrough-on-proxmox-ve-8-installation-and-configuration.130218/
+
+# NOTE: Memory ballooning must be disabled on the VM that you're passing the
+# GPU to! Memory locations need to be fixed in order for the DMA to work.
+
+# NOTE: Assumes that Proxmox is using systemd-boot
+
+- name: Set up GPU Passthrough on PVE
+  hosts: proxmox
+  remote_user: root
+  vars:
+    gpu_id:
+      vendor: '10de'
+      device: '1b80'
+      audio_device: '10f0'
+
+  tasks:
+    - name: Check if IOMMU is enabled
+      ansible.builtin.command: /usr/bin/journalctl --dmesg --grep 'Detected AMD IOMMU'
+      register: journalctl
+      failed_when: journalctl.rc != 0
+      changed_when: false
+
+    - name: Check if IOMMU interrupt remapping is enabled
+      ansible.builtin.command: /usr/bin/journalctl --dmesg --grep 'Interrupt remapping enabled'
+      register: journalctl
+      failed_when: journalctl.rc != 0
+      changed_when: false
+
+    # Sorry, future me
+    - name: Verify IOMMU isolation
+      ansible.builtin.shell: |
+        set -euo pipefail
+        pvesh get /nodes/pve/hardware/pci --output-format json |
+          jq '. as $orig | .[] | select(.vendor == "0x{{ gpu_id.vendor }}" and .device == "0x{{ gpu_id.device }}") as $g |
+          [$orig[] | select(.iommugroup == $g.iommugroup)] | all(.id | contains(($g.id | capture("(?<a>\\d{4}:\\d+:\\d+)\\.\\d+")).a))'
+      args:
+        executable: /usr/bin/bash
+      register: pci_info
+      failed_when: pci_info.rc != 0 or pci_info.stdout == 'false'
+      changed_when: false
+
+    - name: iommu=pt in persistent kernel cmdline
+      kernel_cmdline:
+        parameter: iommu
+        value: pt
+        state: present
+      notify: sync esps
+
+    - name: initcall_blacklist=sysfb_init in persistent kernel cmdline
+      kernel_cmdline:
+        parameter: initcall_blacklist
+        value: sysfb_init
+        state: present
+      notify: sync esps
+
+    # TODO: Check ReBAR?
+
+    - name: Load vfio modules at boot time
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/vfio.conf
+        content: |
+          # Load vfio modules needed for PCI passthrough
+          vfio
+          vfio_iommu_type1
+          vfio_pci
+        mode: '644'
+        owner: root
+        group: root
+      notify: update initramfs
+
+    - name: Enable vfio-pci binding on GPU and disable VGA Arbitration
+      ansible.builtin.copy:
+        dest: /etc/modprobe.d/vfio_pci.conf
+        content: "options vfio_pci ids={{ gpu_id.vendor }}:{{ gpu_id.device }},{{ gpu_id.vendor }}:{{ gpu_id.audio_device }} disable_vga=1"
+        mode: '644'
+        owner: root
+        group: root
+
+    - name: Blacklist Nvidia drivers
+      community.general.kernel_blacklist:
+        name: "{{ item }}"
+        state: present
+        blacklist_file: /etc/modprobe.d/nvidia-blacklist.conf
+      loop:
+        - nouveau
+        - nvidia*
+
+  handlers:
+    # NOTE: Also performs an ESP sync via proxmox-boot-tool refresh
+    - name: Update initramfs and sync ESPs
+      ansible.builtin.command: update-initramfs -v -u -k all
+      listen: update initramfs
+      register: update_initramfs
+      changed_when: >
+        'Building cpio /boot/initrd.img' in update_initramfs.stdout and
+        update_initramfs.rc == 0
+
+    - name: Sync ESPs with proxmox-boot-tool
+      ansible.builtin.command: /usr/sbin/proxmox-boot-tool refresh
+      listen: sync esps
+      register: pbt_refresh
+      changed_when: >
+        'Copying kernel and creating boot-entry for' in pbt_refresh.stdout and
+        pbt_refresh.rc == 0
+      when: update_initramfs is undefined

@@ -1,0 +1,116 @@
+# vim: ft=nginx
+
+proxy_cache_path {{ cache.path }} levels=2:2 keys_zone={{ cache.zone.name }}:{{ cache.zone.size }}
+    inactive={{ cache.lifetime }} max_size={{ cache.max_size }} min_free={{ cache.min_free }}
+    loader_files=1000 loader_sleep=50ms loader_threshold=300ms
+    manager_files=1000 manager_sleep=50ms manager_threshold=300ms
+    use_temp_path=off;
+
+log_format pkgcache '[$time_local] $remote_addr $status ($upstream_cache_status) "$request" "$http_user_agent"';
+
+# Paths that should not be cached
+map $request_uri $nocache {
+    default 0;
+
+    # Debian
+    ~(In)?Release 1;
+    ~Packages 1;
+
+    # openSUSE
+    ARCHIVES.gz 1;
+    ChangeLog 1;
+    ~CHECKSUMS 1;
+    INDEX.gz 1;
+    ls-lR.gz 1;
+    ~repodata/repomd\.xml 1;
+    ~repodata/primary.xml.gz 1;
+    ~history/(disk|latest|list) 1;
+}
+
+# NOTE: Cache lifetime can be obscenely long because the package names include
+# a version string, so each package will effectively never change.
+server {
+    listen 80 reuseport;
+    listen [::]:80 reuseport;
+
+    # NOTE: Needed to resolve proxy targets that are themselves reverse proxies,
+    # e.g. ftp.fau.de
+    resolver pihole.lan ipv6=off;
+
+    access_log {{ log_path.access }} pkgcache;
+    error_log {{ log_path.error }};
+
+    # Source for cache status in log output
+    add_header X-Cache-Status $upstream_cache_status;
+
+    proxy_cache {{ cache.zone.name }};
+    proxy_cache_key $host$uri$slice_range;
+    proxy_cache_valid 200 206 {{ cache.lifetime }};
+    proxy_cache_valid 301 302 0;
+    proxy_cache_lock on;
+    proxy_cache_lock_age 30s;
+    proxy_cache_lock_timeout 1h; # Our sole purpose is to be a cache
+    proxy_cache_revalidate on;
+    proxy_cache_use_stale error timeout invalid_header updating http_500 http_502 http_503 http_504;
+    proxy_next_upstream error timeout http_404;
+
+    # Slice requests into chunks to make caching large responses more effective
+    slice {{ cache.chunk_size }};
+    proxy_set_header Range $slice_range;
+    proxy_http_version 1.1;
+
+    proxy_cache_bypass $nocache;
+    proxy_no_cache $nocache;
+
+    proxy_redirect off;
+    proxy_ssl_server_name on;
+
+    # Ignore any cache control since the same-named packages shouldn't be
+    # changing in the first place.
+    proxy_ignore_headers Expires Cache-Control;
+
+    # Continue to cache any in-progress responses if a client aborts
+    proxy_ignore_client_abort on;
+
+    location /debian/ {
+        proxy_pass http://deb.debian.org/debian/;
+        proxy_set_header Host "deb.debian.org";
+    }
+
+    location /debsec/ {
+        proxy_pass http://deb.debian.org/debian-security/;
+        proxy_set_header Host "deb.debian.org";
+    }
+
+    location /proxmox/ {
+        proxy_pass http://download.proxmox.com/debian/;
+        proxy_set_header Host "download.proxmox.com";
+    }
+
+    location /tumbleweed/ {
+        proxy_pass http://download.opensuse.org/tumbleweed/;
+        proxy_set_header Host "download.opensuse.org";
+    }
+
+    location ~ /tw-history/(\d+)/(.+) {
+        # Coalesce Tumbleweed snapshot URIs
+        proxy_cache_key $host/$2$slice_range;
+
+        proxy_pass http://download.opensuse.org/history/$1/$2;
+        proxy_set_header Host "download.opensuse.org";
+    }
+
+    location /tw-update/ {
+        proxy_pass http://download.opensuse.org/update/tumbleweed/;
+        proxy_set_header Host "download.opensuse.org";
+    }
+
+    location ~ /packman/(\w+)/(.+) {
+        proxy_pass http://ftp.fau.de/packman/suse/openSUSE_Tumbleweed/$1/$2;
+        proxy_set_header Host "ftp.fau.de";
+    }
+
+    location = /nginx_status {
+        stub_status;
+    }
+}

@@ -1,0 +1,183 @@
+# vim: ft=yaml.ansible
+
+# References:
+# - https://www.apalrd.net/posts/2024/cluster_debcache/
+# - https://www.youtube.com/watch?v=ydfsjWDPDyU
+# - https://blog.nginx.org/blog/nginx-caching-guide
+# - https://blog.nginx.org/blog/smart-efficient-byte-range-caching-nginx
+
+- name: Set up local package cache for various distros
+  hosts: pkgcache.lan
+  remote_user: root
+  vars:
+    cache:
+      path: /var/cache/pkgcache
+      zone:
+        name: generic
+        size: 256m
+      lifetime: 365d
+      max_size: 100g
+      min_free: 3g
+      chunk_size: 1m
+    log_path:
+      access: /var/log/nginx/access.log
+      error: /var/log/nginx/error.log
+    site_filename: pkgcache.conf
+  tasks:
+    - name: Package cache exists
+      ansible.builtin.file:
+        path: "{{ cache.path }}"
+        state: directory
+        owner: root
+        group: www-data
+        mode: "0775"
+
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Disable default site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Copy pkgcache site config to sites-available
+      ansible.builtin.template:
+        src: "{{ site_filename }}.j2"
+        dest: "/etc/nginx/sites-available/{{ site_filename }}"
+        owner: root
+        group: root
+        mode: '0644'
+      register: copy_cfg
+
+    # NOTE: This is done separately because the config is only a fragment and
+    # needs the full context of /etc/nginx.conf where it is included from
+    - name: Validate nginx config
+      ansible.builtin.command:
+        cmd: nginx -t -c /etc/nginx/nginx.conf
+      changed_when: false
+      when: copy_cfg.changed
+
+    - name: Enable pkgcache site config
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/{{ site_filename }}"
+        dest: "/etc/nginx/sites-enabled/{{ site_filename }}"
+        state: link
+
+    - name: Enable and start nginx service
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: "{{ 'restarted' if copy_cfg.changed else 'started' }}"
+        enabled: true
+
+    - name: Check for /etc/apt/sources.list
+      ansible.builtin.stat:
+        path: /etc/apt/sources.list
+      register: stat_sources
+
+    - name: Back up legacy /etc/apt/sources.list
+      ansible.builtin.command:
+        cmd: mv /etc/apt/sources.list /etc/apt/sources.list~
+        removes: /etc/apt/sources.list
+        creates: /etc/apt/sources.list~
+      when: stat_sources.stat.exists
+
+    - name: Point host repositories at own cache
+      ansible.builtin.deb822_repository:
+        name: "pkgcache-{{ item.name }}"
+        types: deb
+        uris: "http://localhost/{{ item.name }}"
+        suites: "{{ item.suites }}"
+        components:
+          - main
+          - contrib
+        trusted: true
+        enabled: true
+      loop:
+        - name: debian
+          suites:
+            - "{{ ansible_distribution_release }}"
+            - "{{ ansible_distribution_release }}-updates"
+        - name: debsec
+          suites:
+            - "{{ ansible_distribution_release }}-security"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Refresh package index
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: false
+
+- name: Configure host to use pkgcache
+  hosts:
+    - pihole
+    - debserver:!pkgcache.lan
+  remote_user: root
+  vars:
+    pkgcache_hostname: pkgcache.lan
+  tasks:
+    - name: Check for /etc/apt/sources.list
+      ansible.builtin.stat:
+        path: /etc/apt/sources.list
+      register: stat_sources
+
+    - name: Back up legacy /etc/apt/sources.list
+      ansible.builtin.command:
+        cmd: mv /etc/apt/sources.list /etc/apt/sources.list~
+        removes: /etc/apt/sources.list
+        creates: /etc/apt/sources.list~
+      when: stat_sources.stat.exists
+
+    - name: Add proxied Debian sources
+      ansible.builtin.deb822_repository:
+        name: "pkgcache-{{ item.name }}"
+        types: deb
+        uris: "http://{{ pkgcache_hostname }}/{{ item.name }}"
+        suites: "{{ item.suites }}"
+        components:
+          - main
+          - contrib
+        trusted: true
+        enabled: true
+      loop:
+        - name: debian
+          suites:
+            - "{{ ansible_distribution_release }}"
+            - "{{ ansible_distribution_release }}-updates"
+        - name: debsec
+          suites:
+            - "{{ ansible_distribution_release }}-security"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Check if host is Proxmox Virtual Environment
+      ansible.builtin.stat:
+        path: /etc/pve
+      register: stat_pve
+
+    # NOTE: Assumes newer deb822 format
+    - name: Proxmox Virtual Environment specific repos
+      when: stat_pve.stat.exists and stat_pve.stat.isdir
+      block:
+        - name: Add proxied Proxmox non-enterprise source
+          ansible.builtin.deb822_repository:
+            name: pkgcache-pve-non-enterprise
+            types: deb
+            uris: http://{{ pkgcache_hostname }}/proxmox
+            suites: "{{ ansible_distribution_release }}"
+            components: pve-no-subscription
+            signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
+            trusted: true
+            enabled: true
+
+        - name: Disable upstream Proxmox non-enterprise source
+          ansible.builtin.deb822_repository:
+            name: pve-non-enterprise
+            enabled: false
+
+    - name: Refresh package index
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: false
