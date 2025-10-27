@@ -1,9 +1,8 @@
 *.ign
 
-# Ignore butane configs ending in `-passwd`, as these fragments with user
+# Ignore butane configs ending in `-passwd`, as these are fragments with user
 # definitions in them that include password hashes.
 *-passwd.bu
 *-passwd.butane
 
 *.env
-containers/opencloud/opencloud-compose/
