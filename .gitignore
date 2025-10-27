@@ -1,0 +1,6 @@
+*.ign
+
+# Ignore butane configs ending in `-passwd`, as these fragments with user
+# definitions in them that include password hashes.
+*-passwd.bu
+*-passwd.butane

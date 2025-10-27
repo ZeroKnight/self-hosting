@@ -1,0 +1,54 @@
+# vim: ft=yaml.butane
+
+variant: fcos
+version: 1.6.0
+
+ignition:
+  config:
+    merge:
+      - local: shipyard-passwd.ign
+
+storage:
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      contents:
+        inline: shipyard
+
+systemd:
+  units:
+    # ublue/ucore
+    - name: rpm-ostree-rebase-to-ucore.service
+      contents_local: rpm-ostree-rebase-to-ucore.service
+      enabled: true
+
+    # Using rootless Podman; ensure docker.socket cannot be used
+    - name: docker.socket
+      enabled: false
+      mask: true
+
+    - name: var-mnt-media.mount
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Mount shared media dataset
+
+        [Mount]
+        What=pve.lan:/rpool/media
+        Where=/var/mnt/media
+        Type=nfs4
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: var-mnt-media.automount
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Automount shared media dataset
+
+        [Automount]
+        Where=/var/mnt/media
+
+        [Install]
+        WantedBy=multi-user.target

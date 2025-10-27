@@ -1,0 +1,18 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Rebase to uCore
+Wants=network-online.target
+After=network-online.target
+Before=zincati.service
+ConditionPathExists=!/var/lib/rpm-ostree-rebase-to-ucore.stamp
+
+[Service]
+Type=oneshot
+StandardOutput=journal+console
+RemainAfterExit=yes
+ExecStart=/usr/bin/rpm-ostree rebase --reboot ostree-unverified-registry:ghcr.io/ublue-os/ucore-minimal:stable-nvidia
+ExecStart=/usr/bin/touch /var/lib/rpm-ostree-rebase-to-ucore.stamp
+
+[Install]
+WantedBy=multi-user.target
