@@ -1,0 +1,31 @@
+# vim: ft=systemd
+
+[Unit]
+Description=StirlingPDF Container
+
+[Service]
+ExecStartPre=/usr/bin/mkdir -p %E/stirling-pdf
+ExecStartPre=/usr/bin/mkdir -p %D/stirling-pdf/custom
+ExecStartPre=/usr/bin/mkdir -p %L/stirling-pdf
+ExecStartPre=/usr/bin/mkdir -p %S/stirling-pdf/pipeline
+
+[Container]
+Image=docker.io/stirlingtools/stirling-pdf:1.5.0
+PublishPort=8081:8080
+Environment=DISABLE_ADDITIONAL_FEATURES=true
+
+Volume=stirlingpdf-tessdata.volume:/usr/share/tessdata
+Volume=%E/stirling-pdf:/configs:Z
+Volume=%D/stirling-pdf/custom:/customFiles:Z
+Volume=%L/stirling-pdf:/logs:Z
+Volume=%S/stirling-pdf/pipeline:/pipeline:Z
+
+# XXX: The container is Docker-oriented and does the PUID/PGID hack, dropping
+# to an unprivileged user via setuid/setgid. This tries to work around that
+# by premptively mapping that user to the host UID/GID.
+UserNS=keep-id:uid=100,gid=101
+Environment=PUID= PGID=
+NoNewPrivileges=true
+DropCapability=all
+AddCapability=SETGID
+AddCapability=SETUID
