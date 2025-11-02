@@ -29,3 +29,6 @@ NoNewPrivileges=true
 DropCapability=all
 AddCapability=SETGID
 AddCapability=SETUID
+
+[Install]
+WantedBy=default.target

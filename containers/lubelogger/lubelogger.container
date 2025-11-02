@@ -9,3 +9,6 @@ PublishPort=8100:8080
 Environment=LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 Volume=lubelogger-data.volume:/App/data
 Volume=lubelogger-keys.volume:/root/.aspnet/DataProtection-Keys
+
+[Install]
+WantedBy=default.target

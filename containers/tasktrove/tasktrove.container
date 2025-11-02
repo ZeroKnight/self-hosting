@@ -9,4 +9,4 @@ PublishPort=3000:3000
 Volume=tasktrove.volume:/app/data
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=default.target

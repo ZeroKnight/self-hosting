@@ -17,4 +17,4 @@ Volume=kavita-config.volume:/kavita/config
 Restart=on-failure
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=default.target

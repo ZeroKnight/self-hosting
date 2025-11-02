@@ -19,3 +19,6 @@ Secret=opencloud-idm-password,type=env,target=IDM_ADMIN_PASSWORD
 Volume=%h/opencloud-data:/var/lib/opencloud
 Volume=%h/.config/opencloud:/etc/opencloud
 Volume=%h/.local/share/opencloud/apps:/var/lib/opencloud/web/assets/apps
+
+[Install]
+WantedBy=default.target

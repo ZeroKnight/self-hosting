@@ -12,4 +12,4 @@ PublishPort=3474:80
 Restart=on-failure
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=default.target

@@ -22,4 +22,4 @@ Volume=/var/mnt/media/images/immich:/data
 Volume=/etc/localtime:/etc/localtime:ro
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=default.target
