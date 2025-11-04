@@ -4,7 +4,7 @@
 Description=TaskTrove Todo Manager Container
 
 [Container]
-Image=ghcr.io/dohsimpson/tasktrove:v0.8.0
+Image=ghcr.io/dohsimpson/tasktrove:v0.9.1
 PublishPort=3000:3000
 Volume=tasktrove.volume:/app/data
 
