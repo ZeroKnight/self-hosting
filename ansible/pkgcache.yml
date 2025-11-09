@@ -51,6 +51,12 @@
         mode: '0644'
       register: copy_cfg
 
+    - name: Enable pkgcache site config
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/{{ site_filename }}"
+        dest: "/etc/nginx/sites-enabled/{{ site_filename }}"
+        state: link
+
     # NOTE: This is done separately because the config is only a fragment and
     # needs the full context of /etc/nginx.conf where it is included from
     - name: Validate nginx config
@@ -58,12 +64,6 @@
         cmd: nginx -t -c /etc/nginx/nginx.conf
       changed_when: false
       when: copy_cfg.changed
-
-    - name: Enable pkgcache site config
-      ansible.builtin.file:
-        src: "/etc/nginx/sites-available/{{ site_filename }}"
-        dest: "/etc/nginx/sites-enabled/{{ site_filename }}"
-        state: link
 
     - name: Enable and start nginx service
       ansible.builtin.systemd_service:
