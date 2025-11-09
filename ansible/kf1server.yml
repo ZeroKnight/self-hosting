@@ -30,6 +30,10 @@
           - ReloadOptionsMut.ReloadOptionsMut
           - KFShareCash.KFShareCashMut
           - MutRETROLAR.MutRETROLAR
+        voting:
+          time_limit: 60
+          # Number of games before a map can be voted again
+          map_cooldown: 0
         admin_name: ZeroKnight
         admin_password: !vault |
           $ANSIBLE_VAULT;1.2;AES256;kf1server
@@ -333,8 +337,8 @@
             value: true
 
     - name: Copy KFMapVoteV2 config
-      ansible.builtin.copy:
-        src: kf1server/KFMapVote.ini
+      ansible.builtin.template:
+        src: kf1server/KFMapVote.ini.j2
         dest: "{{ (kf1server.config_dir, 'System/KFMapVote.ini') | path_join }}"
         mode: '0644'
         owner: steam
