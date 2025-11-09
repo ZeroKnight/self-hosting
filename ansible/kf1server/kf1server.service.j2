@@ -1,0 +1,37 @@
+[Unit]
+Description={{ kf1server.settings.server_name }}
+
+Requires={{ overlay.mount_unit }}
+After={{ overlay.mount_unit }}
+
+Wants=nginx.service
+
+Requires=network.target
+After=network.target
+
+[Service]
+Type=exec
+User=steam
+Group=steam
+
+Environment=MAX_PLAYERS={{ kf1server.settings.max_players }}
+Environment=START_MAP={{ kf1server.settings.start_map }}
+Environment=MUTATORS={{ kf1server.settings.mutators | join(',') }}
+Environment=UCC_ARGS=
+
+# KF1 ships with some outdated libraries: steamclient, tier0_s, and vstdlib_s.
+# The server will run, but it won't be able to communicate with the master
+# server or Steam services. Thankfully, the necessary libraries are shipped
+# with SteamCMD, so we can use them via LD_LIBRARY_PATH.
+Environment="LD_LIBRARY_PATH={{ home }}/.local/share/Steam/steamcmd/linux32:."
+
+WorkingDirectory={{ overlay.target }}/System
+ExecStartPre=-/usr/bin/rm {{ overlay.upper }}/System/KillingFloor.ini
+ExecStart="{{ overlay.target }}/System/ucc-bin-real" \
+    server ${START_MAP}?game=KFmod.KFGameType?MaxPlayers=${MAX_PLAYERS}?mutator=${MUTATORS} ${UCC_ARGS}
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

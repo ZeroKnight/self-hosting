@@ -1,0 +1,9 @@
+// Install Killing Floor 1 Dedicated Server
+
+@ShutdownOnFailedCommand 1
+@NoPromptForPassword 1
+
+force_install_dir {{ home }}
+login {{ steamcmd.user }} {{ steamcmd.password }}
+app_update 215360 validate
+quit

@@ -1,0 +1,8 @@
+[Unit]
+Description={{ kf1server.settings.server_name }} overlay mount
+
+[Mount]
+Type=overlay
+What=overlay
+Where={{ overlay.target }}
+Options=lowerdir={{ overlay.lower | join(':') }},upperdir={{ overlay.upper }},workdir={{ overlay.work_dir }}

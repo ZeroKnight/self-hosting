@@ -1,0 +1,396 @@
+# vim: ft=yaml.ansible
+
+- name: Killing Floor 1 Dedicated Server with FastDL
+  hosts: kf1server.lan
+  remote_user: root
+  vars:
+    home: /srv/steam
+    overlay:
+      target: "{{ (home, 'kf1server') | path_join }}"
+      mount_unit: "{{ overlay.target[1:] | replace('/', '-') }}.mount"
+      upper: "{{ (home, 'varlayer') | path_join }}"
+      lower:
+        - "{{ (home, 'custom') | path_join }}"
+        - "{{ kf1server.install_dir | replace(' ', '\\ ') }}"
+      work_dir: "{{ (home, '.work') | path_join }}"
+    kf1server:
+      install_script: "{{ (home, 'install-kf1ds.txt') | path_join }}"
+      install_dir: "{{ (home, '.local/share/Steam/steamapps/common/Killing Floor Dedicated Server - Linux') | path_join }}"
+      workshop_dir: "{{ (home, '.local/share/Steam/steamapps/workshop/content/1250') | path_join }}"
+      config_dir: "{{ (home, '.killingfloor') | path_join }}"
+      config_file: "{{ (kf1server.config_dir, 'System/KillingFloor.ini') | path_join }}"
+      settings:
+        server_name: ZeroNet Killing Floor Server
+        motd: Fancy a bit of Zed Killing on the Home Lab, do ya?
+        max_players: 6
+        max_spectators: 3
+        tick_rate: 60
+        start_map: KF-WestLondon.rom
+        mutators:
+          - ReloadOptionsMut.ReloadOptionsMut
+          - KFShareCash.KFShareCashMut
+          - MutRETROLAR.MutRETROLAR
+        admin_name: ZeroKnight
+        admin_password: !vault |
+          $ANSIBLE_VAULT;1.2;AES256;kf1server
+          64343930643636616433386638656666303663393065396530313164643632383239376339346263
+          3461363335663439313165373233336435333837643032660a653164323464626635393030316264
+          63323130343339343365383230386162646364646630316266306562646531313632663566666239
+          3765373535666261390a613430383961666665623762313466656261316266333665393735663132
+          31376430396339346139383064383439303532376666656436643337623534363363
+        game_password: !vault |
+          $ANSIBLE_VAULT;1.2;AES256;kf1server
+          65373265383964343935316437333734356633613361613338653564636238623636613836616264
+          3730303863323834363239643037653463613233353835310a643137643132383835616662343962
+          39316364363233666632626538646461613730393535393033666237353964623862383163303931
+          6433376138323735650a386361333162303832323764626636323835396330316364356264666231
+          3038
+        webadmin:
+          enabled: true
+          port: 8075
+      nginx:
+        server_name:
+          - kf1.zeronet.dimensionzero.net
+          - kf1server.lan
+      steamcmd:
+        user: dimensionzeronet
+        password: !vault |
+          $ANSIBLE_VAULT;1.2;AES256;kf1server
+          35613566333164653739393862623464386564353062613761653934306163363033636438653638
+          3032656533326439356365393435663261316665376630360a336136646230373963326365646262
+          65306566323064313733333235633864623735343837343639633562656264333333353666616337
+          6266393064663832370a623734333837303839393065656638633064306634343165323939326138
+          31353338383538343634663532323831323964366635623630393438616534656432
+
+  tasks:
+    - name: Enable i386 architecture for SteamCMD package
+      ansible.builtin.lineinfile:
+        path: /var/lib/dpkg/arch
+        line: i386
+        state: present
+        mode: '0644'
+      register: dpkg_arch
+
+    # TODO: Don't assume pkgcache in use
+    - name: Enable Debian non-free component
+      ansible.builtin.lineinfile:
+        path: /etc/apt/sources.list.d/pkgcache-debian.sources
+        regexp: '^Components:(( ?\w+)+)$'
+        line: 'Components:\1 non-free'
+        backrefs: true
+        backup: true
+      register: components
+
+    - name: Update package index
+      ansible.builtin.apt:
+        update_cache: true
+      when: dpkg_arch.changed or components.changed
+
+    - name: Install nginx and steamcmd
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - steamcmd
+        state: present
+      tags: nginx
+
+    - name: Create steam user
+      ansible.builtin.user:
+        name: steam
+        comment: steamcmd user
+        home: "{{ home }}"
+        create_home: true
+        shell: /bin/bash
+        state: present
+
+    - name: Create symlinks
+      ansible.builtin.file:
+        src: "{{ item.src }}"
+        dest: "{{ (home, item.dest) | path_join }}"
+        state: link
+        owner: steam
+        group: steam
+        force: true
+      loop:
+        - src: "{{ kf1server.install_dir }}"
+          dest: base
+        - src: "{{ kf1server.workshop_dir }}"
+          dest: workshop
+      loop_control:
+        label: "{{ item.dest }}"
+
+    - name: Create directories for overlayfs
+      ansible.builtin.file:
+        path: "{{ (home, item) | path_join }}"
+        state: directory
+        mode: '0755'
+        owner: steam
+        group: steam
+      loop:
+        - .work
+        - custom
+        - kf1server
+        - varlayer
+      tags: overlay
+
+    - name: Link ucc.log to /dev/null
+      ansible.builtin.file:
+        src: /dev/null
+        dest: "{{ (kf1server.config_dir, 'System/ucc.log') | path_join }}"
+        state: link
+        force: true
+      tags: config
+
+    - name: Copy SteamCMD server install script
+      ansible.builtin.template:
+        src: "kf1server/{{ kf1server.install_script | basename }}.j2"
+        dest: "{{ kf1server.install_script }}"
+        owner: steam
+        group: steam
+        mode: '0600'
+
+    - name: Install Killing Floor Dedicated Server
+      ansible.builtin.command:
+        cmd: "/usr/games/steamcmd +runscript {{ kf1server.install_script }}"
+        creates: "{{ kf1server.install_dir }}"
+
+    - name: Copy kf1server.service
+      ansible.builtin.template:
+        src: kf1server/kf1server.service.j2
+        dest: /etc/systemd/system/kf1server.service
+        mode: '0644'
+        owner: root
+        group: root
+      tags: systemd
+      notify:
+        - systemd verify
+        - systemd daemon reload
+
+    - name: Copy {{ overlay.mount_unit }}
+      ansible.builtin.template:
+        src: kf1server/kf1server.mount.j2
+        dest: /etc/systemd/system/{{ overlay.mount_unit }}
+        mode: '0644'
+        owner: root
+        group: root
+      tags:
+        - systemd
+        - overlay
+      notify:
+        - systemd verify
+        - systemd daemon reload
+
+    - name: Enable kf1server service
+      ansible.builtin.systemd_service:
+        name: kf1server
+        enabled: true
+      tags:
+        - systemd
+
+    - name: Mount {{ overlay.mount_unit }}
+      ansible.builtin.systemd_service:
+        name: "{{ overlay.mount_unit }}"
+        state: started
+      tags:
+        - systemd
+        - overlay
+
+    - name: Check for KillingFloor.ini
+      ansible.builtin.stat:
+        path: "{{ kf1server.config_file }}"
+      register: stat_kf1config
+      tags: config
+
+    - name: Create base KillingFloor.ini from Default.ini
+      ansible.builtin.copy:
+        src: "{{ (install_dir, 'System/Default.ini') | path_join }}"
+        dest: "{{ kf1server.config_file }}"
+        remote_src: true
+        mode: preserve
+      when: not stat_kf1config.stat.exists
+      tags: config
+
+    - name: Configure kf1server settings
+      module_defaults:
+        community.general.ini_file:
+          path: "{{ kf1server.config_file }}"
+          mode: '0644'
+          owner: steam
+          group: steam
+          create: false
+          no_extra_spaces: true
+      tags: config
+      block:
+        - name: Set server name
+          community.general.ini_file:
+            section: Engine.GameReplicationInfo
+            option: ServerName
+            value: "{{ kf1server.settings.server_name }}"
+
+        - name: Set server MOTD
+          community.general.ini_file:
+            section: Engine.GameReplicationInfo
+            option: MessageOfTheDay
+            value: "{{ kf1server.settings.motd }}"
+
+        - name: Set server admin name
+          community.general.ini_file:
+            section: Engine.GameReplicationInfo
+            option: AdminName
+            value: "{{ kf1server.settings.admin_name }}"
+
+        - name: Set server admin password
+          community.general.ini_file:
+            section: Engine.AccessControl
+            option: AdminPassword
+            value: "{{ kf1server.settings.admin_password }}"
+
+        - name: Set server game password
+          community.general.ini_file:
+            section: Engine.AccessControl
+            option: GamePassword
+            value: "{{ kf1server.settings.game_password }}"
+
+        - name: Set Map Voting Handler
+          community.general.ini_file:
+            section: Engine.GameInfo
+            option: VotingHandlerType
+            value: KFMapVoteV2.KFVotingHandler
+
+        # NOTE: Reference for client/server bandwidth and tick rates:
+        # https://steamcommunity.com/sharedfiles/filedetails/?id=925630057
+
+        - name: Set server tick rate
+          community.general.ini_file:
+            section: IpDrv.TcpNetDriver
+            option: "{{ item }}"
+            value: "{{ kf1server.settings.tick_rate }}"
+          loop:
+            - NetServerMaxTickRate
+            - LanServerMaxTickRate
+
+        - name: Set max client rate
+          community.general.ini_file:
+            section: IpDrv.TcpNetDriver
+            option: "{{ item }}"
+            value: "{{ 88 * kf1server.settings.tick_rate * kf1server.settings.max_players }}"
+          loop:
+            - MaxClientRate
+            - MaxInternetClientRate
+
+        - name: Set max players
+          community.general.ini_file:
+            section: Engine.GameInfo
+            option: MaxPlayers
+            value: "{{ kf1server.settings.max_players }}"
+
+        - name: Set max spectators
+          community.general.ini_file:
+            section: Engine.GameInfo
+            option: MaxSpectators
+            value: "{{ kf1server.settings.max_spectators }}"
+
+        - name: Set HTTP download server URL
+          community.general.ini_file:
+            section: IpDrv.HTTPDownload
+            option: RedirectToURL
+            value: "http://{{ nginx.server_name[0] }}:80/"
+
+        - name: Do not use UZ2 compression
+          community.general.ini_file:
+            section: IpDrv.HTTPDownload
+            option: UseCompression
+            value: false
+
+        - name: Disable GameSpy uplink
+          community.general.ini_file:
+            section: IpDrv.MasterServerUplink
+            option: UplinkToGamespy
+            value: false
+
+        - name: Remove log cmdline option
+          community.general.ini_file:
+            section: Editor.EditorEngine
+            option: GameCommandLine
+            value: ""
+
+        - name: Set WebAdmin state
+          community.general.ini_file:
+            section: UWeb.WebServer
+            option: bEnabled
+            value: "{{ kf1server.webadmin.enabled }}"
+
+        - name: Set WebAdmin port
+          community.general.ini_file:
+            section: UWeb.WebServer
+            option: ListenPort
+            value: "{{ kf1server.webadmin.port }}"
+
+        - name: Allow admin game pausing
+          community.general.ini_file:
+            section: Engine.GameInfo
+            option: bAdminCanPause
+            value: true
+
+    - name: Copy KFMapVoteV2 config
+      ansible.builtin.copy:
+        src: kf1server/KFMapVote.ini
+        dest: "{{ (kf1server.config_dir, 'System/KFMapVote.ini') | path_join }}"
+        mode: '0644'
+        owner: steam
+        group: steam
+      tags: config
+
+    - name: Copy kf1server site config to sites-available
+      ansible.builtin.template:
+        src: "kf1server/kf1server.conf.j2"
+        dest: "/etc/nginx/sites-available/kf1server.conf"
+        owner: root
+        group: root
+        mode: '0644'
+      register: nginx_cfg
+      tags: nginx
+
+    - name: Enable kf1server site config
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/kf1server.conf"
+        dest: "/etc/nginx/sites-enabled/kf1server.conf"
+        state: link
+      tags: nginx
+
+    - name: Disable default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      tags: nginx
+
+    # NOTE: This is done separately because the config is only a fragment and
+    # needs the full context of /etc/nginx.conf where it is included from
+    - name: Validate nginx config
+      ansible.builtin.command:
+        cmd: nginx -t -c /etc/nginx/nginx.conf
+      changed_when: false
+      when: nginx_cfg.changed
+      tags: nginx
+
+    - name: Enable and start nginx service
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: "{{ 'restarted' if (nginx_cfg.changed | default(False)) else 'started' }}"
+        enabled: true
+      tags:
+        - nginx
+        - systemd
+
+  handlers:
+    - name: systemd daemon reload
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: systemd verify
+      ansible.builtin.command:
+        cmd: systemd-analyze verify {{ item }}
+      loop:
+        - /etc/systemd/system/kf1server.service
+        - /etc/systemd/system/{{ overlay.mount_unit }}
+      changed_when: false

@@ -1,0 +1,49 @@
+log_format kf1 '[$time_local] $remote_addr $http_x_forwarded_for $status "$request" $body_bytes_sent "$http_user_agent"';
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    server_name {{ nginx.server_name | join(' ') }};
+
+    root {{ home }}/custom;
+
+    access_log /var/log/nginx/access.log kf1;
+
+    # NOTE: The KF client doesn't like gzip compression.
+    gzip_disable '^Unreal$';
+
+    # NOTE: The HTTP downloader in Unreal 2.5 is a bit dumb and makes every
+    # request from the web root, regardless of filetype. Rather than dump
+    # everything in the web root, regex location blocks that match on file
+    # extensions redirect to the correct subdirectory, allowing us to serve
+    # the "custom" directory as-is.
+
+    autoindex on;
+
+    location / {
+        # The usual nginx fallback logic, with the addition of trying inside
+        # the "System" subdirectory as a final fallback.
+        try_files $uri $uri/ /System$uri =404;
+    }
+
+    location ~* \.rom$ {
+        root {{ home }}/custom/Maps;
+    }
+
+    location ~* \.utx$ {
+        root {{ home }}/custom/Textures;
+    }
+
+    location ~* \.usx$ {
+        root {{ home }}/custom/StaticMeshes;
+    }
+
+    location ~* \.(ogg|mp3)$ {
+        root {{ home }}/custom/Music;
+    }
+
+    location ~* \.uax$ {
+        root {{ home }}/custom/Sounds;
+    }
+}
