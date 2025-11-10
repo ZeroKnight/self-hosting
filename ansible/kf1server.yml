@@ -98,6 +98,15 @@
         state: present
       tags: nginx
 
+    - name: Link steamcmd to /usr/bin
+      ansible.builtin.file:
+        src: /usr/games/steamcmd
+        dest: /usr/bin/steamcmd
+        state: hard
+        mode: '0755'
+        owner: root
+        group: root
+
     - name: Create steam user
       ansible.builtin.user:
         name: steam
