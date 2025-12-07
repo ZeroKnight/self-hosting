@@ -1,0 +1,6 @@
+ARG kavita_tag=latest
+FROM ghcr.io/kareadita/kavita:${kavita_tag}
+
+# Patch entrypoint to `exec` the main processes so that it can receive
+# signals. Most importantly, the stop signals for graceful shutdown
+RUN sed -i 's|\./Kavita$|exec ./Kavita|' /entrypoint.sh

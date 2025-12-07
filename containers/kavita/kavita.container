@@ -6,7 +6,8 @@ Requires=var-mnt-media.mount
 After=var-mnt-media.mount
 
 [Container]
-Image=ghcr.io/kareadita/kavita:0.8.8
+# Image=ghcr.io/kareadita/kavita:0.8.8
+Image=kavita.build
 PublishPort=5000:5000
 Environment=TZ=America/Los_Angeles
 

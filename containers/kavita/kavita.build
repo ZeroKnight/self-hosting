@@ -1,0 +1,10 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Build unit for Kavita container patches
+
+[Build]
+SetWorkingDirectory=%h/.config/containers/systemd
+File=Containerfile.kavita-patch
+PodmanArgs=--build-arg=kavita_tag=0.8.8
+ImageTag=kavita-patched:0.8.8
