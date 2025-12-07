@@ -1,0 +1,6 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Dawarich public data volume
+
+[Volume]

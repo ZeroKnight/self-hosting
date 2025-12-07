@@ -1,0 +1,13 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Build unit for Dawarich container patches
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+
+[Build]
+SetWorkingDirectory=%h/.config/containers/systemd
+File=Containerfile.dawarich-patch
+PodmanArgs=--build-arg=dawarich_tag=${DAWARICH_TAG}
+ImageTag=dawarich-patched:${DAWARICH_TAG}

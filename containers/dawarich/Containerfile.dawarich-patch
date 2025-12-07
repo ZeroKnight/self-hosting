@@ -1,0 +1,6 @@
+ARG dawarich_tag=latest
+FROM freikin/dawarich:${dawarich_tag}
+
+# Patch entrypoints to `exec` their main processes so that they can receive
+# signals. Most importantly, the stop signals for graceful shutdown
+RUN sed -si '$s/bundle/exec bundle/' /usr/local/bin/*-entrypoint.sh

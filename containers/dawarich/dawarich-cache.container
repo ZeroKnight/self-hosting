@@ -1,0 +1,20 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Dawarich Valkey cache Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=dawarich.pod
+Image=docker.io/valkey/valkey:8-alpine
+Volume=dawarich-shared:/data:Z
+
+Notify=healthy
+HealthOnFailure=stop
+HealthInterval=10s
+HealthRetries=5
+HealthTimeout=10s
+HealthStartPeriod=5s
+HealthCmd=valkey-cli --raw incr ping

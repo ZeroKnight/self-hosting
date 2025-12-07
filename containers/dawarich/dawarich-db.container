@@ -1,0 +1,28 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Dawarich Database Container
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+Restart=on-failure
+
+[Container]
+Pod=dawarich.pod
+Image=docker.io/postgis/postgis:17-3.5-alpine
+Volume=dawarich-shared:/var/shared:Z
+Volume=dawarich-db:/var/lib/postgresql/data
+
+Secret=dawarich-db-password,mode=400
+EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+Environment=POSTGRES_DB=${DATABASE_NAME}
+Environment=POSTGRES_USER=${DATABASE_USERNAME}
+Environment=POSTGRES_PASSWORD_FILE=/run/secrets/dawarich-db-password
+
+Notify=healthy
+HealthOnFailure=stop
+HealthInterval=10s
+HealthRetries=5
+HealthTimeout=10s
+HealthStartPeriod=5s
+HealthCmd=pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}

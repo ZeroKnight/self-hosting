@@ -1,0 +1,8 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Dawarich shared data volume
+
+[Volume]
+# valkey user
+User=999

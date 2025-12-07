@@ -1,0 +1,11 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Dawarich Pod
+
+[Pod]
+PublishPort=3100:3000
+ShmSize=1G
+
+[Install]
+WantedBy=multi-user.target default.target

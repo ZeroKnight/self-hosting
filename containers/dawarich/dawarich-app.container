@@ -1,0 +1,42 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Dawarich App Container
+Requires=dawarich-cache.container dawarich-db.container
+Wants=dawarich-sidekiq.container
+After=dawarich-cache.container dawarich-db.container
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+Restart=on-failure
+
+[Container]
+Pod=dawarich.pod
+# Image=docker.io/freikin/dawarich:${DAWARICH_TAG}
+Image=dawarich.build
+Entrypoint=web-entrypoint.sh
+Exec=bin/rails server -p 3000 -b ::
+StopSignal=SIGINT
+PodmanArgs=--cpus=0.5
+Memory=4G
+
+Volume=dawarich-public:/var/app/public
+Volume=dawarich-watched:/var/app/tmp/imports/watched
+Volume=dawarich-storage:/var/app/storage
+Volume=dawarich-db:/dawarich_db_data
+
+Secret=dawarich-db-password,type=env,target=DATABASE_PASSWORD
+EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+
+Notify=healthy
+HealthOnFailure=stop
+HealthInterval=1m
+HealthRetries=5
+HealthTimeout=10s
+HealthStartPeriod=3s
+HealthCmd=curl -s http://127.0.0.1:3000/api/v1/health | grep -q '"ok"'
+
+# Wait for server to come up before trying main health check
+HealthStartupCmd=test -e tmp/pids/server.pid && pgrep -F tmp/pids/server.pid
+HealthStartupRetries=30
+HealthStartupInterval=3s

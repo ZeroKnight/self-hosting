@@ -1,0 +1,32 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Dawarich Sidekiq Container
+Requires=dawarich-app.container
+After=dawarich-app.container
+
+[Service]
+EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+Restart=on-failure
+
+[Container]
+Pod=dawarich.pod
+# Image=docker.io/freikin/dawarich:${DAWARICH_TAG}
+Image=dawarich.build
+Entrypoint=sidekiq-entrypoint.sh
+Exec=sidekiq
+
+Volume=dawarich-public:/var/app/public
+Volume=dawarich-watched:/var/app/tmp/imports/watched
+Volume=dawarich-storage:/var/app/storage
+
+Secret=dawarich-db-password,type=env,target=DATABASE_PASSWORD
+EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+
+Notify=healthy
+HealthOnFailure=stop
+HealthInterval=10s
+HealthRetries=15
+HealthTimeout=10s
+HealthStartPeriod=10s
+HealthCmd=pgrep -f sidekiq
