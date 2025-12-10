@@ -1,5 +1,5 @@
 ARG dawarich_tag=latest
-FROM freikin/dawarich:${dawarich_tag}
+FROM docker.io/freikin/dawarich:${dawarich_tag}
 
 # Patch entrypoints to `exec` their main processes so that they can receive
 # signals. Most importantly, the stop signals for graceful shutdown
