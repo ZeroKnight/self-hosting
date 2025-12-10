@@ -4,7 +4,7 @@
 Description=LubeLogger Vehicle Maintenence Tracker Container
 
 [Container]
-Image=ghcr.io/hargata/lubelogger:v1.5.3
+Image=ghcr.io/hargata/lubelogger:v1.5.5
 PublishPort=8100:8080
 Environment=LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 Volume=lubelogger-data.volume:/App/data
