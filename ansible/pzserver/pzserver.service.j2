@@ -1,0 +1,32 @@
+[Unit]
+Description={{ game.name }} Dedicated Server
+Requires={{ systemd.unit_prefix }}.socket
+
+[Service]
+Type=exec
+WorkingDirectory={{ game.install_dir }}
+
+# The Zomboid server is a naive Java console application that doesn't handle
+# signals, so it can only be cleanly shut down via console input. We can still
+# integrate with systemd by connecting a FIFO to the console stdin and issuing
+# the 'save' and 'quit' commands that it expects.
+
+# NOTE: According to the man page, the correct option *should* be `fd`, but in
+# practice this doesn't work and causes "failed to load a file descriptor"
+# errors during ExecStop. Meanwhile, `socket` in fact works exactly as we expect
+# it to. Shout out to marecki for their blog post on this niche problem:
+# https://blogs.gentoo.org/marecki/2020/09/16/console-bound-systemd-services-the-right-way/
+StandardInput=socket
+
+# NOTE: Must be explicitly set because StandardOutput ends up defaulting to
+# `inherit` when StandardInput is `socket` or `fd`.
+StandardOutput=journal
+StandardError=journal
+Sockets={{ systemd.unit_prefix }}.socket
+
+Environment=PATH={{ game.install_dir }}/jre64/bin:${PATH}
+Environment=LD_LIBRARY_PATH={{ systemd.ld_library_path | join(':') }}
+Environment=LD_PRELOAD=libjsig.so
+
+ExecStart={{ game.install_dir }}/ProjectZomboid64
+ExecStop={{ (server_user.home, 'pzserver-stop.sh') | path_join }}

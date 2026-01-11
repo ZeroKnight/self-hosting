@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -eu
+
+fifo_path='{{ systemd.fifo_path }}'
+
+# NOTE: The server will implicitly save first before quitting
+echo 'quit' >"$fifo_path"
+
+# Wait for server to exit
+while kill -0 "${MAINPID}" 2>/dev/null; do
+    /usr/bin/sleep 1s
+done

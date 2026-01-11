@@ -1,0 +1,9 @@
+# vim: ft=yaml.ansible
+
+- name: systemd daemon reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: apt update
+  ansible.builtin.apt:
+    update_cache: true

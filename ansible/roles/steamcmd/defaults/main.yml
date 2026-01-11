@@ -1,0 +1,11 @@
+server_user:
+  name: steam
+  home: /srv/steam
+
+steamcmd:
+  user: anonymous
+  password: "{{ undef() }}"
+  install_script: install-server.txt
+
+systemd:
+  verify: true

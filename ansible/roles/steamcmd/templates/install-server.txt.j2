@@ -1,0 +1,9 @@
+// Install {{ game.name }} Dedicated Server
+
+@ShutdownOnFailedCommand 1
+@NoPromptForPassword 1
+
+force_install_dir {{ game.install_dir }}
+login {{ steamcmd.user }} {{ steamcmd.password | default('') }}
+app_update {{ game.app_id }} {% if game.branch is defined %}-beta {{ game.branch }} {% endif -%} validate
+quit

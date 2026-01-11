@@ -1,0 +1,19 @@
+# vim: ft=yaml.ansible
+
+- name: Create server user
+  ansible.builtin.user:
+    name: "{{ server_user.name }}"
+    home: "{{ server_user.home }}"
+    create_home: true
+    shell: /bin/bash
+    state: present
+
+- name: Install SteamCMD
+  ansible.builtin.import_tasks:
+    file: install.yml
+  tags: install
+
+- name: Install game server and copy systemd units
+  ansible.builtin.import_tasks:
+    file: gameserver.yml
+  tags: gameserver

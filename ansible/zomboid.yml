@@ -1,0 +1,54 @@
+# vim: ft=yaml.ansible
+
+- name: Set up a Project Zomboid Dedicated Server
+  hosts: zomboid.lan
+  remote_user: root
+  vars:
+    game:
+      name: Project Zomboid
+      app_id: 380870
+      branch: 42.13.1
+      install_dir: "{{ (server_user.home, 'pzserver') | path_join }}"
+      data_dir: /var/lib/zomboid
+    systemd:
+      verify: false # Need to copy stop-script first
+      unit_prefix: pzserver
+      service_file: "{{ ('pzserver', systemd.unit_prefix) | path_join }}.service"
+      extra_units:
+        - "{{ ('pzserver', systemd.unit_prefix) | path_join }}.socket"
+      fifo_path: "/run/{{ systemd.unit_prefix }}_fifo"
+      ld_library_path:
+        - linux64
+        - natives
+        - '' # Working directory
+        - jre64/lib
+  roles:
+    - steamcmd
+  tasks:
+    - name: Copy pzserver-stop.sh to server user home
+      ansible.builtin.template:
+        src: pzserver/pzserver-stop.sh.j2
+        dest: "{{ (server_user.home, 'pzserver-stop.sh') | path_join }}"
+        owner: "{{ server_user.name }}"
+        group: "{{ server_user.name }}"
+        mode: "0750"
+
+    - name: Link Zomboid directory to data mount
+      ansible.builtin.file:
+        src: "{{ game.data_dir }}"
+        dest: "{{ (server_user.home, 'Zomboid') | path_join }}"
+        state: link
+
+    - name: Link server-console.txt to /dev/null
+      ansible.builtin.file:
+        src: /dev/null
+        dest: "{{ (game.data_dir, 'server-console.txt') | path_join}}"
+        state: link
+
+    - name: Verify systemd units
+      ansible.builtin.command:
+        cmd: systemd-analyze verify {{ item }}
+      loop:
+        - "/etc/systemd/system/{{ systemd.service_file }}"
+        - "/etc/systemd/system/{{ systemd.extra_units[0] }}"
+      changed_when: false

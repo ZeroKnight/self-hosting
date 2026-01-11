@@ -1,0 +1,11 @@
+[Unit]
+Description={{ game.name }} Dedicated Server Console Input
+BindsTo={{ systemd.service_file }}
+
+[Socket]
+ListenFIFO={{ systemd.fifo_path }}
+
+SocketUser={{ server_user.name }}
+SocketGroup={{ server_user.name }}
+SocketMode=0660
+RemoveOnStop=true

@@ -1,0 +1,68 @@
+# vim: ft=yaml.ansible
+
+- name: Copy SteamCMD server install script
+  ansible.builtin.template:
+    src: install-server.txt.j2
+    dest: "{{ (server_user.home, steamcmd.install_script) | path_join }}"
+    owner: "{{ server_user.name }}"
+    mode: '0600'
+
+# NOTE: steamcmd really wants an absolute path for whatever reason
+- name: Install Dedicated Server
+  become: true
+  become_user: "{{ server_user.name }}"
+  become_method: su
+  ansible.builtin.command:
+    cmd: "/usr/bin/steamcmd +runscript {{ (server_user.home, steamcmd.install_script) | path_join }}"
+    chdir: "{{ server_user.home }}"
+    creates: "{{ game.install_dir }}"
+  tags: install
+
+- name: Set up systemd units
+  tags: systemd
+  notify: systemd daemon reload
+  block:
+    - name: Copy game server service unit
+      ansible.builtin.template:
+        src: "{{ systemd.service_file }}.j2"
+        dest: "/etc/systemd/system/{{ systemd.service_file | basename }}"
+        mode: "0644"
+        owner: root
+        group: root
+
+    - name: Copy additional systemd units
+      ansible.builtin.template:
+        src: "{{ item }}.j2"
+        dest: "/etc/systemd/system/{{ item | basename }}"
+        mode: "0644"
+        owner: root
+        group: root
+      loop: "{{ systemd.extra_units }}"
+
+    - name: Create directory for game server drop-in service files
+      ansible.builtin.file:
+        path: "/etc/systemd/system/{{ systemd.service_file | basename }}.d"
+        state: directory
+        mode: "0755"
+        owner: root
+        group: root
+
+    - name: Copy SteamCMD drop-in service file
+      ansible.builtin.template:
+        src: 20-steamcmd.conf.j2
+        dest: "/etc/systemd/system/{{ systemd.service_file | basename }}.d/20-steamcmd.conf"
+        mode: "0644"
+        owner: root
+        group: root
+
+    - name: Verify systemd units
+      ansible.builtin.command:
+        cmd: systemd-analyze verify {{ item }}
+      loop: "{{ [('/etc/systemd/system', systemd.service_file) | path_join] + systemd.extra_units }}"
+      changed_when: false
+      when: systemd.verify
+
+    - name: Enable game server service
+      ansible.builtin.systemd_service:
+        name: "{{ systemd.service_file | basename }}"
+        enabled: true
