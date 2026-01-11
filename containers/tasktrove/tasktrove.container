@@ -7,6 +7,7 @@ Description=TaskTrove Todo Manager Container
 Image=ghcr.io/dohsimpson/tasktrove:v0.9.1
 PublishPort=3000:3000
 Volume=tasktrove.volume:/app/data
+Volume=tasktrove-backup.volume:/app/backups
 
 [Install]
 WantedBy=default.target
