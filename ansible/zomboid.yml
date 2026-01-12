@@ -6,6 +6,7 @@
   vars:
     game:
       name: Project Zomboid
+      server_name: dzpz
       app_id: 380870
       branch: 42.13.1
       install_dir: "{{ (server_user.home, 'pzserver') | path_join }}"
