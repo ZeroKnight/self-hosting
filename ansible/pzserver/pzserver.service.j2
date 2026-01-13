@@ -28,5 +28,5 @@ Environment=PATH={{ game.install_dir }}/jre64/bin:${PATH}
 Environment=LD_LIBRARY_PATH={{ systemd.ld_library_path | join(':') }}
 Environment=LD_PRELOAD=libjsig.so
 
-ExecStart={{ game.install_dir }}/ProjectZomboid64 {%- if game.server_name is defined %} -servername {{ game.server_name }} {% endif +%}
+ExecStart={{ game.install_dir }}/ProjectZomboid64 {%- if server.admin_password is defined %} -adminpassword '{{ server.admin_password }}' {% endif %} {%- if server.name is defined %} -servername '{{ server.name }}' {% endif +%}
 ExecStop={{ (server_user.home, 'pzserver-stop.sh') | path_join }}

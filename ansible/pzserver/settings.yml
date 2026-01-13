@@ -1,0 +1,34 @@
+server_settings:
+  DefaultPort: "{{ server.port | default(16261) }}"
+  Map: "{{ server.map | default('Muldraugh, KY') }}"
+  ServerWelcomeMessage: <RGB:0,0.886,0.694>Welcome to the Dimension Zero Project Zomboid server!
+  MaxPlayers: "{{ server.max_players }}"
+  SaveWorldEveryMinutes: 15
+  PlayerSaveOnDamage: true
+
+  # Server Visibility
+  Open: true
+  Public: false
+  Password: !vault |
+      $ANSIBLE_VAULT;1.2;AES256;dzselfhost
+      36353038376362373332323033346238393137666263363763323930646331653932626464323336
+      3839336164323837383137303838343335663430333336380a613238383063396631343334393363
+      39366330643662353839643332636233303336376339343036303937653230633962663366336435
+      3138663366303861620a313335303938306233393037303437613735613666303665376464383237
+      3935
+
+  # Gameplay Settings
+  SleepAllowed: true
+  SleepNeeded: true
+  PauseEmpty: true
+  DisplayUserName: true
+
+  # This is a small, private server. No need for these more public settings
+  PVP: false
+  SafetySystem: false
+  PlayerSafehouse: false
+  Faction: false
+
+  # Misc Settings
+  UPnP: false
+  DoLuaChecksum: true

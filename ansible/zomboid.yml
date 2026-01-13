@@ -3,14 +3,27 @@
 - name: Set up a Project Zomboid Dedicated Server
   hosts: zomboid.lan
   remote_user: root
+  vars_files:
+    - pzserver/settings.yml
   vars:
     game:
       name: Project Zomboid
-      server_name: dzpz
       app_id: 380870
       branch: 42.13.1
       install_dir: "{{ (server_user.home, 'pzserver') | path_join }}"
       data_dir: /var/lib/zomboid
+      config_file: "{{ (game.data_dir, 'Server', server.name ~ '.ini') | path_join }}"
+    server:
+      name: dzpz
+      max_players: 4
+      admin_password: !vault |
+          $ANSIBLE_VAULT;1.2;AES256;dzselfhost
+          37623133616436373837366435636537643862363065626464353233663439363737323932313963
+          3832643035353962373831323430323430393738363636300a366136663031666235363833316464
+          30656630303635333839633532376664633065653939643036326130643362366430653333653834
+          3762623230326165330a633961333232626336323335376137343233643165323037623134353339
+          35323631383138333437326631316237656639653935663338623134306638623231656566373364
+          6337336530333231383639623564326630623436613635386335
     systemd:
       verify: false # Need to copy stop-script first
       unit_prefix: pzserver
@@ -53,3 +66,18 @@
         - "/etc/systemd/system/{{ systemd.service_file }}"
         - "/etc/systemd/system/{{ systemd.extra_units[0] }}"
       changed_when: false
+
+    - name: Configure server settings
+      community.general.ini_file:
+        path: "{{ game.config_file }}"
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        no_extra_spaces: true
+        mode: '0640'
+        owner: "{{ server_user.name }}"
+        group: "{{ server_user.name }}"
+      with_dict: "{{ server_settings }}"
+      loop_control:
+        label: "{{ item.key }}"
+      tags: settings
