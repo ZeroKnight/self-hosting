@@ -58,7 +58,7 @@
     - name: Verify systemd units
       ansible.builtin.command:
         cmd: systemd-analyze verify {{ item }}
-      loop: "{{ [('/etc/systemd/system', systemd.service_file) | path_join] + systemd.extra_units }}"
+      loop: "{{ [('/etc/systemd/system', systemd.service_file | basename) | path_join] + systemd.extra_units }}"
       changed_when: false
       when: systemd.verify
 

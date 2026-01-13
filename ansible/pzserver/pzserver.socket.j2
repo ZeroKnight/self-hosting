@@ -1,6 +1,6 @@
 [Unit]
 Description={{ game.name }} Dedicated Server Console Input
-BindsTo={{ systemd.service_file }}
+BindsTo={{ systemd.service_file | basename }}
 
 [Socket]
 ListenFIFO={{ systemd.fifo_path }}
