@@ -48,12 +48,6 @@
         mode: "0750"
       tags: systemd
 
-    - name: Link Zomboid directory to data mount
-      ansible.builtin.file:
-        src: "{{ game.data_dir }}"
-        dest: "{{ (server_user.home, 'Zomboid') | path_join }}"
-        state: link
-
     - name: Link server-console.txt to /dev/null
       ansible.builtin.file:
         src: /dev/null
