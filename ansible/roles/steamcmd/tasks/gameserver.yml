@@ -6,17 +6,21 @@
     dest: "{{ (server_user.home, steamcmd.install_script) | path_join }}"
     owner: "{{ server_user.name }}"
     mode: '0600'
+  register: install_script
+  tags: steam
 
-# NOTE: steamcmd really wants an absolute path for whatever reason
 - name: Install Dedicated Server
   become: true
   become_user: "{{ server_user.name }}"
   become_method: su
   ansible.builtin.command:
+    # NOTE: steamcmd really wants an absolute path for whatever reason
     cmd: "/usr/bin/steamcmd +runscript {{ (server_user.home, steamcmd.install_script) | path_join }}"
     chdir: "{{ server_user.home }}"
-    creates: "{{ game.install_dir }}"
-  tags: install
+  register: steamcmd_run
+  changed_when: "'Update state (0x61)' in steamcmd_run.stdout"
+  when: install_script.changed
+  tags: steam
 
 - name: Set up systemd units
   tags: systemd
