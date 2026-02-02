@@ -46,6 +46,7 @@
         owner: "{{ server_user.name }}"
         group: "{{ server_user.name }}"
         mode: "0750"
+      tags: systemd
 
     - name: Link Zomboid directory to data mount
       ansible.builtin.file:
@@ -66,6 +67,7 @@
         - "/etc/systemd/system/{{ systemd.service_file }}"
         - "/etc/systemd/system/{{ systemd.extra_units[0] }}"
       changed_when: false
+      tags: systemd
 
     - name: Configure server settings
       community.general.ini_file:

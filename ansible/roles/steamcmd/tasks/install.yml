@@ -3,6 +3,7 @@
 - name: Set debian_arch fact
   ansible.builtin.set_fact:
     debian_arch: "{{ ansible_facts.architecture | replace('x86_64', 'amd64') }}"
+  tags: repo
 
 - name: Ensure dpkg arch file exists
   ansible.builtin.lineinfile:
@@ -13,6 +14,7 @@
     owner: root
     group: root
     mode: "0644"
+  tags: repo
 
 - name: Enable i386 architecture for SteamCMD package
   ansible.builtin.lineinfile:
@@ -23,6 +25,7 @@
     group: root
     mode: '0644'
   register: dpkg_arch
+  tags: repo
 
 - name: Set up repositories, enable non-free component
   ansible.builtin.template:
@@ -32,6 +35,7 @@
     group: root
     mode: "0644"
   register: apt_repos
+  tags: repo
 
 - name: Accept Steam License Agreement
   ansible.builtin.debconf:
@@ -39,6 +43,7 @@
     question: steam/question
     value: I AGREE
     vtype: select
+  tags: repo
 
 - name: Install steamcmd
   ansible.builtin.apt:
@@ -46,7 +51,6 @@
     state: present
     update_cache: "{{ dpkg_arch.changed or apt_repos.changed }}"
     install_recommends: false
-  tags: install
 
 - name: Link steamcmd to /usr/bin
   ansible.builtin.file:
