@@ -64,6 +64,19 @@
       changed_when: false
       tags: systemd
 
+    - name: Set JVM Options
+      ansible.builtin.lineinfile:
+        path: "{{ (game.install_dir, 'ProjectZomboid64.json') | path_join }}"
+        search_string: "\"-XX:\\+{{ item }}\","
+        line: "\t\t\"-XX:+{{ item }}\","
+        insertbefore: 'OmitStackTraceInFastThrow'
+        owner: "{{ server_user.name }}"
+        mode: "0664"
+      loop:
+        - ZGenerational
+        - PerfDisableSharedMem
+      tags: settings
+
     - name: Configure server settings
       community.general.ini_file:
         path: "{{ game.config_file }}"
