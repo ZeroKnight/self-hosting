@@ -9,13 +9,14 @@
     game:
       name: Project Zomboid
       app_id: 380870
-      branch: 42.13.1
+      branch: unstable
       install_dir: "{{ (server_user.home, 'pzserver') | path_join }}"
       data_dir: /var/lib/zomboid
       config_file: "{{ (game.data_dir, 'Server', server.name ~ '.ini') | path_join }}"
     server:
       name: dzpz
       max_players: 4
+      map: Echo Creek, KY
       admin_password: !vault |
           $ANSIBLE_VAULT;1.2;AES256;dzselfhost
           37623133616436373837366435636537643862363065626464353233663439363737323932313963
