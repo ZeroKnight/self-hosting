@@ -19,7 +19,7 @@ server_settings:
 
   # Gameplay Settings
   SleepAllowed: true
-  SleepNeeded: true
+  SleepNeeded: false # NOTE: sleep seems broken as of 42.13.2
   PauseEmpty: true
   DisplayUserName: true
 
