@@ -15,7 +15,7 @@
       config_file: "{{ (game.data_dir, 'Server', server.name ~ '.ini') | path_join }}"
     server:
       name: dzpz
-      max_players: 4
+      max_players: 6
       map: Echo Creek, KY
       admin_password: !vault |
           $ANSIBLE_VAULT;1.2;AES256;dzselfhost
