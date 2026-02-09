@@ -1,3 +1,10 @@
+# HACK: Work around Ansible/Jinja lexing bug
+_mod_id_pfx: '\'
+
+server_mods:
+  - mod_id: CustomSync
+    workshop_id: 3646815505
+
 server_settings:
   DefaultPort: "{{ server.port | default(16261) }}"
   Map: "{{ server.map | default('Muldraugh, KY') }}"
@@ -32,3 +39,10 @@ server_settings:
   # Misc Settings
   UPnP: false
   DoLuaChecksum: true
+
+  # Mods
+  # NOTE: I can't find a definitive source, but each ModID must have a leading
+  # backslash in order for the server to correctly load it, otherwise it tries
+  # to load a dubious "mods" ID and fails.
+  Mods: "{{ server_mods | map(attribute='mod_id') | map('indent', _mod_id_pfx, first=True) | join(';') }}"
+  WorkshopItems: "{{ server_mods | map(attribute='workshop_id') | join(';') }}"
