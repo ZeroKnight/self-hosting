@@ -77,11 +77,31 @@
         - PerfDisableSharedMem
       tags: settings
 
+    # HACK: The Zomboid server writes the config without a trailing newline.
+    # This makes ini_file tasks report a dubious "changed" status since it has
+    # to append one. We can preemptively write one ourselves to avoid that.
+    - name: Server settings trailing newline hack
+      tags: settings
+      block:
+        - name: Ensure server settings file exists
+          ansible.builtin.stat:
+            path: "{{ game.config_file }}"
+          register: stat_settings
+
+        - name: Ensure server settings file has trailing newline
+          ansible.builtin.shell: |
+            set -eo pipefail
+            tail -c1 {{ game.config_file }} | read -r _ || echo >> {{ game.config_file }}
+            sha1sum {{ game.config_file }} | cut -d ' ' -f 1
+          register: ensure_newline
+          changed_when: ensure_newline.stdout != stat_settings.stat.checksum
+          when: stat_settings.stat.exists
+
     - name: Configure server settings
       community.general.ini_file:
         path: "{{ game.config_file }}"
         option: "{{ item.key }}"
-        value: "{{ item.value }}"
+        value: "{{ item.value is boolean | ternary((item.value | string).lower(), item.value) }}"
         create: true
         no_extra_spaces: true
         mode: '0640'
