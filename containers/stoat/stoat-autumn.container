@@ -1,0 +1,11 @@
+[Unit]
+Requires=stoat-database.service stoat-createbuckets.service
+After=stoat-database.service stoat-createbuckets.service
+
+[Container]
+Image=ghcr.io/revoltchat/autumn:20250930-2
+Pod=stoat.pod
+Volume=./Revolt.toml:/Revolt.toml
+
+[Service]
+Restart=always

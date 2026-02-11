@@ -1,0 +1,10 @@
+[Container]
+EnvironmentFile=.env.web
+Image=docker.io/caddy
+Pod=stoat.pod
+Volume=./Caddyfile:/etc/caddy/Caddyfile
+Volume=./data/caddy-data:/data
+Volume=./data/caddy-config:/config
+
+[Service]
+Restart=always

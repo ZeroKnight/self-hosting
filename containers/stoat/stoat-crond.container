@@ -1,0 +1,11 @@
+[Unit]
+Requires=stoat-database.service stoat-minio.service
+After=stoat-database.service stoat-minio.service
+
+[Container]
+Image=ghcr.io/revoltchat/crond:20250930-2
+Pod=stoat.pod
+Volume=./Revolt.toml:/Revolt.toml
+
+[Service]
+Restart=always

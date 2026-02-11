@@ -1,0 +1,13 @@
+[Container]
+Environment=RABBITMQ_DEFAULT_USER=rabbituser RABBITMQ_DEFAULT_PASS=rabbitpass
+HealthCmd=rabbitmq-diagnostics -q ping
+HealthInterval=10s
+HealthRetries=3
+HealthStartPeriod=20s
+HealthTimeout=10s
+Image=docker.io/rabbitmq:4
+Pod=stoat.pod
+Volume=./data/rabbit:/var/lib/rabbitmq
+
+[Service]
+Restart=always

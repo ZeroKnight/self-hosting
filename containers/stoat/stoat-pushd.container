@@ -1,0 +1,11 @@
+[Unit]
+Requires=stoat-database.service stoat-redis.service stoat-rabbit.service
+After=stoat-database.service stoat-redis.service stoat-rabbit.service
+
+[Container]
+Image=ghcr.io/revoltchat/pushd:20250930-2
+Pod=stoat.pod
+Volume=./Revolt.toml:/Revolt.toml
+
+[Service]
+Restart=always

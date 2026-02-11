@@ -1,0 +1,3 @@
+[Pod]
+PublishPort=80:80
+PublishPort=443:443

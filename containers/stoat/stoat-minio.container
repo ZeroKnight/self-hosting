@@ -1,0 +1,10 @@
+[Container]
+Environment=MINIO_ROOT_USER=minioautumn MINIO_ROOT_PASSWORD=minioautumn MINIO_DOMAIN=minio
+Exec=server /data
+Image=docker.io/minio/minio
+Network=default.network:alias=revolt-uploads.minio,alias=attachments.minio,alias=avatars.minio,alias=backgrounds.minio,alias=icons.minio,alias=banners.minio,alias=emojis.minio
+Pod=stoat.pod
+Volume=./data/minio:/data
+
+[Service]
+Restart=always

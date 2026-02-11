@@ -1,0 +1,6 @@
+[Container]
+Image=docker.io/eqalpha/keydb
+Pod=stoat.pod
+
+[Service]
+Restart=always

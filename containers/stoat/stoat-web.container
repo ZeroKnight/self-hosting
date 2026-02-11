@@ -1,0 +1,7 @@
+[Container]
+EnvironmentFile=.env.web
+Image=ghcr.io/revoltchat/client:master
+Pod=stoat.pod
+
+[Service]
+Restart=always

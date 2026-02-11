@@ -1,0 +1,7 @@
+[Container]
+Image=ghcr.io/revoltchat/gifbox:20250930-2
+Pod=stoat.pod
+Volume=./Revolt.toml:/Revolt.toml
+
+[Service]
+Restart=always

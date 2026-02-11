@@ -1,0 +1,12 @@
+[Container]
+HealthCmd=echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+HealthInterval=10s
+HealthRetries=5
+HealthStartPeriod=10s
+HealthTimeout=10s
+Image=docker.io/mongo
+Pod=stoat.pod
+Volume=./data/db:/data/db
+
+[Service]
+Restart=always
