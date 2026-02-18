@@ -13,3 +13,7 @@ Image=ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION}-cuda
 Volume=immich-mlcache.volume:/cache
 EnvironmentFile=./immich.env
 AddDevice=nvidia.com/gpu=all
+
+# NOTE: Explicitly define healthcheck to work around podman #18904
+HealthCmd=python3 healthcheck.py
+HealthInterval=2m

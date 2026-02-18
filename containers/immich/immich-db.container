@@ -18,3 +18,9 @@ Environment=POSTGRES_PASSWORD=${DB_PASSWORD}
 Environment=POSTGRES_USER=${DB_USERNAME}
 Environment=POSTGRES_DB=${DB_DATABASE_NAME}
 Environment=POSTGRES_INITDB_ARGS='--data-checksums'
+
+# NOTE: Explicitly define healthcheck to work around podman #18904
+HealthCmd=/usr/local/bin/healthcheck.sh
+HealthInterval=5m
+HealthStartupInterval=5s
+HealthStartPeriod=5m

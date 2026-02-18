@@ -21,5 +21,9 @@ EnvironmentFile=./immich.env
 Volume=/var/mnt/media/images/immich:/data
 Volume=/etc/localtime:/etc/localtime:ro
 
+# NOTE: Explicitly define healthcheck to work around podman #18904
+HealthCmd=immich-healthcheck
+HealthInterval=1m
+
 [Install]
 WantedBy=default.target

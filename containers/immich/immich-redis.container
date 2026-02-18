@@ -9,7 +9,7 @@ Restart=on-failure
 
 [Container]
 Pod=immich.pod
-Image=docker.io/valkey/valkey:8-bookworm
+Image=docker.io/valkey/valkey:9@sha256:546304417feac0874c3dd576e0952c6bb8f06bb4093ea0c9ca303c73cf458f63
 
 HealthCmd=redis-cli ping || exit 1
 HealthInterval=2m
