@@ -1,9 +1,17 @@
+# TODO: sandboxVariables
+# set CustomSync settings
+# set xp gains to 2x
+
 # HACK: Work around Ansible/Jinja lexing bug
 _mod_id_pfx: '\'
 
 server_mods:
   - mod_id: CustomSync
     workshop_id: 3646815505
+  - mod_id: ServingPlatesB42MP
+    workshop_id: 3399320470
+  - mod_id: EQUIPMENT_UI
+    workshop_id: 2950902979
 
 server_settings:
   DefaultPort: "{{ server.port | default(16261) }}"
@@ -38,7 +46,7 @@ server_settings:
 
   # Misc Settings
   UPnP: false
-  DoLuaChecksum: true
+  DoLuaChecksum: false
 
   # Mods
   # NOTE: I can't find a definitive source, but each ModID must have a leading
