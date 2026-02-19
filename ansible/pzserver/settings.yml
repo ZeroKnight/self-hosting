@@ -1,7 +1,3 @@
-# TODO: sandboxVariables
-# set CustomSync settings
-# set xp gains to 2x
-
 # HACK: Work around Ansible/Jinja lexing bug
 _mod_id_pfx: '\'
 
