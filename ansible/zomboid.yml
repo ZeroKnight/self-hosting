@@ -40,6 +40,13 @@
   roles:
     - steamcmd
   tasks:
+    - name: Install dos2unix
+      become: true
+      ansible.builtin.package:
+        name: dos2unix
+        state: present
+      tags: install
+
     - name: Copy pzserver-stop.sh to server user home
       ansible.builtin.template:
         src: pzserver/pzserver-stop.sh.j2
@@ -91,7 +98,7 @@
         - name: Ensure server settings file has trailing newline
           ansible.builtin.shell: |
             set -eo pipefail
-            tail -c1 {{ game.config_file }} | read -r _ || echo >> {{ game.config_file }}
+            dos2unix -k -e {{ game.config_file }}
             sha1sum {{ game.config_file }} | cut -d ' ' -f 1
           register: ensure_newline
           changed_when: ensure_newline.stdout != stat_settings.stat.checksum
