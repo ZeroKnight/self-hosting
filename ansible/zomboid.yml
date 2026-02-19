@@ -104,6 +104,14 @@
           changed_when: ensure_newline.stdout != stat_settings.stat.checksum
           when: stat_settings.stat.exists
 
+    # NOTE: Avoids a benign exception in the server log
+    - name: Ensure mods directory exists
+      ansible.builtin.file:
+        path: "{{ (game.data_dir, 'mods') | path_join }}"
+        state: present
+        owner: "{{ server_user.name }}"
+        mode: "0755"
+
     - name: Configure server settings
       community.general.ini_file:
         path: "{{ game.config_file }}"
