@@ -73,7 +73,7 @@
         owner: "{{ server_user.name }}"
         mode: "0664"
       loop:
-        - ZGenerational
+        - UseZGC
         - PerfDisableSharedMem
       tags: settings
 
