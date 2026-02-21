@@ -4,7 +4,7 @@
 Description=Immich Machine Learning Container
 
 [Service]
-EnvironmentFile=%h/.config/containers/systemd/immich.env
+EnvironmentFile=%E/containers/systemd/immich/immich.env
 Restart=on-failure
 
 [Container]

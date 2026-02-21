@@ -10,7 +10,7 @@ Requires=immich-redis.container immich-db.container
 After=immich-redis.container immich-db.container
 
 [Service]
-EnvironmentFile=%h/.config/containers/systemd/immich.env
+EnvironmentFile=%E/containers/systemd/immich/immich.env
 Restart=on-failure
 
 [Container]

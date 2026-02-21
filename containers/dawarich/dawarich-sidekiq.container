@@ -6,7 +6,7 @@ Requires=dawarich-app.container
 After=dawarich-app.container
 
 [Service]
-EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+EnvironmentFile=%E/containers/systemd/dawarich/dawarich.env
 Restart=on-failure
 
 [Container]
@@ -21,7 +21,7 @@ Volume=dawarich-watched:/var/app/tmp/imports/watched
 Volume=dawarich-storage:/var/app/storage
 
 Secret=dawarich-db-password,type=env,target=DATABASE_PASSWORD
-EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+EnvironmentFile=./dawarich.env
 
 Notify=healthy
 HealthOnFailure=stop

@@ -4,7 +4,7 @@
 Description=Dawarich Database Container
 
 [Service]
-EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+EnvironmentFile=%E/containers/systemd/dawarich/dawarich.env
 Restart=on-failure
 
 [Container]
@@ -14,7 +14,7 @@ Volume=dawarich-shared:/var/shared:Z
 Volume=dawarich-db:/var/lib/postgresql/data
 
 Secret=dawarich-db-password,mode=400
-EnvironmentFile=%h/.config/containers/systemd/dawarich.env
+EnvironmentFile=./dawarich.env
 Environment=POSTGRES_DB=${DATABASE_NAME}
 Environment=POSTGRES_USER=${DATABASE_USERNAME}
 Environment=POSTGRES_PASSWORD_FILE=/run/secrets/dawarich-db-password
