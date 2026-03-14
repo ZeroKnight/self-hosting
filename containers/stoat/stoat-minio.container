@@ -1,0 +1,20 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Minio Container
+
+Requires=var-mnt-stoat-data.mount
+After=var-mnt-stoat-data.mount
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/minio/minio
+Exec=server /data
+Volume=/var/mnt/stoat/data:/data
+
+Environment=MINIO_DOMAIN=minio
+Environment=MINIO_ROOT_USER=minioautumn
+Secret=stoat-minio-password,type=env,target=MINIO_ROOT_PASSWORD

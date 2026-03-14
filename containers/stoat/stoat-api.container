@@ -1,0 +1,15 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat API Container
+
+Requires=stoat-db.container stoat-redis.container stoat-mq.container
+After=stoat-db.container stoat-redis.container stoat-mq.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/api:v0.11.5
+Volume=./Revolt.toml:/Revolt.toml:Z

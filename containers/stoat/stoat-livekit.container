@@ -1,0 +1,16 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Livekit Container
+
+Requires=stoat-redis.container
+After=stoat-redis.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/livekit-server:v1.9.6
+Exec=--config /etc/livekit.yml
+Volume=./livekit.yml:/etc/livekit.yml:Z

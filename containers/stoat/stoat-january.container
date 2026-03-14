@@ -1,0 +1,12 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat January Metadata/Image Proxy Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/proxy:v0.11.5
+Volume=./Revolt.toml:/Revolt.toml:Z

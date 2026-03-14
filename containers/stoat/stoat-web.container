@@ -1,0 +1,14 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Web App Container
+
+[Service]
+Restart=on-failure
+Environment=STOAT_WEB_TAG=addb6b7
+
+[Container]
+Pod=stoat.pod
+# Image=ghcr.io/stoatchat/for-web:addb6b7
+Image=stoat-web.build
+EnvironmentFile=./stoat-web.env

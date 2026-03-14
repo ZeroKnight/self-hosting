@@ -1,0 +1,27 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Database Container
+
+Requires=var-mnt-stoat-db.mount
+After=var-mnt-stoat-db.mount
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/mongo
+Exec=--config /etc/mongo/mongod.conf
+User=999
+Group=999
+
+Volume=/var/mnt/stoat/db:/data/db
+Volume=./mongod.conf:/etc/mongo/mongod.conf:Z,ro
+
+Notify=healthy
+HealthCmd=echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+HealthInterval=15s
+HealthTimeout=15s
+HealthStartPeriod=15s
+HealthRetries=5

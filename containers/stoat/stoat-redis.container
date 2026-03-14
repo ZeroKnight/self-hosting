@@ -1,0 +1,14 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Redis Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/eqalpha/keydb
+
+HealthCmd=redis-cli ping || exit 1
+HealthInterval=15s

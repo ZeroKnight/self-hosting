@@ -1,0 +1,29 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat RabbitMQ Container
+
+Requires=var-mnt-stoat-mq.mount
+After=var-mnt-stoat-mq.mount
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/rabbitmq:4
+Volume=/var/mnt/stoat/mq:/var/lib/rabbitmq
+User=999
+Group=999
+
+# FIXME: this user/password seems hard-coded somewhere...
+Environment=RABBITMQ_DEFAULT_USER=rabbituser
+Environment=RABBITMQ_DEFAULT_PASS=rabbitpass
+# Secret=stoat-mq-password,type=env,target=RABBITMQ_DEFAULT_PASS
+
+Notify=healthy
+HealthCmd=rabbitmq-diagnostics -q ping
+HealthInterval=15s
+HealthTimeout=15s
+HealthStartPeriod=15s
+HealthRetries=5

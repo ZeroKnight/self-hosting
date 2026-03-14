@@ -6,3 +6,7 @@
 *-passwd.butane
 
 *.env
+
+# Stoat
+containers/stoat/Revolt.toml
+containers/stoat/livekit.yml

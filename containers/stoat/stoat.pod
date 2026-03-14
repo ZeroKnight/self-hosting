@@ -1,0 +1,12 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Pod
+
+[Pod]
+PublishPort=8110:80
+PublishPort=7881:7881
+PublishPort=50000-50100:50000-50100/udp
+
+[Install]
+WantedBy=multi-user.target default.target

@@ -1,0 +1,6 @@
+ARG stoat_web_tag=latest
+FROM ghcr.io/stoatchat/for-web:${stoat_web_tag}
+
+# Override gifbox url
+RUN /usr/bin/find /app/dist/assets -type f -iname '*.js' \
+    -exec /bin/sed -i '/DEFAULT_GIFBOX_URL:/ s/api\.gifbox\.me/chat.dimensionzero.net\/gifbox/g' '{}' \;

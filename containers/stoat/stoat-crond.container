@@ -1,0 +1,15 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Cron Container
+
+Requires=stoat-db.container stoat-minio.container
+After=stoat-db.container stoat-minio.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/crond:v0.11.5
+Volume=./Revolt.toml:/Revolt.toml:Z

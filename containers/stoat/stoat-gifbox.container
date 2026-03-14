@@ -1,0 +1,13 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Gifbox Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+# Image=ghcr.io/stoatchat/gifbox:v0.11.5
+Image=git.britton.me/timbritton/stoat-gifbox
+Volume=./Revolt.toml:/Revolt.toml:Z

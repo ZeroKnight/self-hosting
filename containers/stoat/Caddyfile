@@ -1,0 +1,56 @@
+{
+    auto_https off
+}
+
+:80 {
+	route /api* {
+		uri strip_prefix /api
+		reverse_proxy http://localhost:14702 {
+			header_down Location "^/" "/api/"
+		}
+	}
+
+	route /ws {
+		uri strip_prefix /ws
+		reverse_proxy http://localhost:14703 {
+			header_down Location "^/" "/ws/"
+		}
+	}
+
+	route /autumn* {
+		uri strip_prefix /autumn
+		reverse_proxy http://localhost:14704 {
+			header_down Location "^/" "/autumn/"
+		}
+	}
+
+	route /january* {
+		uri strip_prefix /january
+		reverse_proxy http://localhost:14705 {
+			header_down Location "^/" "/january/"
+		}
+	}
+
+	route /gifbox* {
+		uri strip_prefix /gifbox
+		reverse_proxy http://localhost:14706 {
+			header_down Location "^/" "/gifbox/"
+		}
+	}
+
+	route /livekit* {
+		uri strip_prefix /livekit
+		reverse_proxy http://localhost:7880 {
+			header_down Location "^/" "/livekit/"
+		}
+	}
+
+	route /ingress* {
+		uri strip_prefix /ingress
+		reverse_proxy http://localhost:8500 {
+			header_down Location "^/" "/ingress/"
+		}
+	}
+
+	reverse_proxy http://localhost:5000
+}

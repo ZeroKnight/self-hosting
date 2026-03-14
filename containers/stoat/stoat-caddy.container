@@ -1,0 +1,16 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Caddy Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/caddy
+EnvironmentFile=./stoat-web.env
+
+Volume=./Caddyfile:/etc/caddy/Caddyfile:Z
+Volume=stoat-caddy-data.volume:/data
+Volume=stoat-caddy-config.volume:/config

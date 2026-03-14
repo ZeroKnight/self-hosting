@@ -8,7 +8,7 @@ After=var-mnt-media.mount
 [Container]
 # Image=ghcr.io/kareadita/kavita:0.8.8
 Image=kavita.build
-PublishPort=5000:5000
+PublishPort=5001:5000
 Environment=TZ=America/Los_Angeles
 
 Volume=/var/mnt/media/books:/books

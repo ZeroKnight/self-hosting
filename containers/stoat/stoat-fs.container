@@ -1,0 +1,16 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat File Server Container
+# NOTE: This is "autumn"
+
+Requires=stoat-db.container stoat-createbuckets.container
+After=stoat-db.container stoat-createbuckets.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/file-server:v0.11.5
+Volume=./Revolt.toml:/Revolt.toml:Z
