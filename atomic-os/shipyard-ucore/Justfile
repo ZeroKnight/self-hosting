@@ -11,10 +11,10 @@ ignite target:
     @echo
 
 check target:
-    @echo '{{ CYAN }}Checking butane file {{ target }}{{ NORMAL }}'
+    @echo '{{ CYAN }}Checking butane file {{ target }}.butane{{ NORMAL }}'
     podman run --rm -i -v $PWD:/files \
         quay.io/coreos/butane --check --strict --files-dir /files \
-        < {{ target }}
+        < {{ target }}.butane
     @echo '{{ GREEN }}Okay!{{ NORMAL }}'
 
 serve:
