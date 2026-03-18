@@ -1,0 +1,43 @@
+# vim: ft=yaml.butane
+
+variant: fiot
+version: 1.0.0
+
+ignition:
+  config:
+    merge:
+      - local: rpi-passwd.ign
+
+storage:
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      contents:
+        inline: rift
+    - path: /etc/NetworkManager/system-connections/ethernet.nmconnection
+      contents:
+        inline: |
+          [connection]
+          id=ethernet
+          type=ethernet
+          interface-name=end0
+          mdns=yes
+          zone=home
+
+          [ethernet]
+
+          [ethtool]
+          feature-rx-gro-list=false
+          feature-rx-udp-gro-forwarding=true
+
+          [ipv4]
+          address1=192.168.1.101/22
+          gateway=192.168.0.1
+          dns=192.168.1.250;192.168.1.251;
+          dns-search=lan;
+          may-fail=false
+          method=manual
+      mode: 0600
+  links:
+    - path: /etc/localtime
+      target: ../usr/share/zoneinfo/America/Los_Angeles

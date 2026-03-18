@@ -1,24 +1,4 @@
+import '../Justfile'
+
+# Ignite all butane files
 default: (ignite 'shipyard-passwd') (ignite 'shipyard-ucore')
-
-ignite target:
-    @echo '{{ CYAN }}Creating ignition file for {{ target }}.butane{{ NORMAL }}'
-    podman run --rm -i -v $PWD:/files \
-        quay.io/coreos/butane --pretty --strict --files-dir /files \
-        < {{ target }}.butane \
-        > {{ target }}.ign
-    @echo '{{ GREEN }}Result:{{ NORMAL }}'
-    @cat {{ target }}.ign
-    @echo
-
-check target:
-    @echo '{{ CYAN }}Checking butane file {{ target }}.butane{{ NORMAL }}'
-    podman run --rm -i -v $PWD:/files \
-        quay.io/coreos/butane --check --strict --files-dir /files \
-        < {{ target }}.butane
-    @echo '{{ GREEN }}Okay!{{ NORMAL }}'
-
-serve:
-    @echo '{{ CYAN }}Serving directory for ignition. Available configs:{{ YELLOW }}'
-    @ls -1 *.ign
-    @echo '{{ NORMAL }}'
-    -python3 -m http.server

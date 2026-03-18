@@ -1,0 +1,31 @@
+# Allow deployment-specific Justfiles to override the default recipe
+set allow-duplicate-recipes
+
+default:
+    @just --list
+
+# Run butane
+ignite target:
+    @echo '{{ CYAN }}Creating ignition file for {{ target }}.butane{{ NORMAL }}'
+    podman run --rm -i -v $PWD:/files \
+        quay.io/coreos/butane --pretty --strict --files-dir /files \
+        < {{ target }}.butane \
+        > {{ target }}.ign
+    @echo '{{ GREEN }}Result:{{ NORMAL }}'
+    @cat {{ target }}.ign
+    @echo
+
+# Validate butane file
+check target:
+    @echo '{{ CYAN }}Checking butane file {{ target }}.butane{{ NORMAL }}'
+    podman run --rm -i -v $PWD:/files \
+        quay.io/coreos/butane --check --strict --files-dir /files \
+        < {{ target }}.butane
+    @echo '{{ GREEN }}Okay!{{ NORMAL }}'
+
+# Spin up a Python HTTP server to serve the ignition files
+serve:
+    @echo '{{ CYAN }}Serving directory for ignition. Available configs:{{ YELLOW }}'
+    @ls -1 *.ign
+    @echo '{{ NORMAL }}'
+    -python3 -m http.server

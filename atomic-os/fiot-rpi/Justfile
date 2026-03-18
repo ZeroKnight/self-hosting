@@ -1,0 +1,8 @@
+import '../Justfile'
+
+# Ignite all butane files
+default: (ignite 'rpi-passwd') (ignite 'rpi')
+
+# Run setup playbook
+ansible host='rift.lan' *tags:
+    ansible-playbook -i {{ host }}, -K rpi.yml {{ if tags != '' { '--tags=' + replace(tags, ' ', ',') } else { '' } }}

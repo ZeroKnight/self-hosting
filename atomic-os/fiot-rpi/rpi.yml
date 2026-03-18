@@ -1,0 +1,141 @@
+# vim: ft=yaml.ansible
+
+- name: Set up Tailscale network entrypoint
+  hosts: rift.lan
+  become: true
+  tasks:
+    - name: Increase journald sync interval to 15 minutes
+      ansible.builtin.copy:
+        dest: /etc/systemd/journald.conf.d/infrequent-sync.conf
+        content: |
+          # Try to reduce writes to the SD card
+          SyncIntervalSec=15min
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload journald
+
+    # Broadcom WiFi issues on my Linux? It's more likely than you think.
+    - name: Set brcmfmac options to fix WiFi driver issue
+      ansible.builtin.command:
+        cmd: >
+          rpm-ostree kargs --unchanged-exit-77
+            --append-if-missing=brcmfmac.roamoff=1
+            --append-if-missing=brcmfmac.feature_disable=0x82000
+      register: rpm_ostree_kargs
+      changed_when: rpm_ostree_kargs.rc != 77
+      failed_when: rpm_ostree_kargs.rc not in (0, 77)
+      tags: rpm-ostree
+
+    - name: Layer Cockpit and Tailscale onto the image
+      community.general.rpm_ostree_pkg:
+        name:
+          - cockpit
+          - cockpit-ostree
+          - cockpit-podman
+          - cockpit-networkmanager
+          - cockpit-selinux
+          - cockpit-storaged
+          - tailscale
+        state: present
+      register: rpm_ostree_install
+      tags: rpm-ostree
+
+    - name: Reboot into new ostree image if changes were made
+      ansible.builtin.reboot:
+        msg: Booting into new ostree image
+        reboot_timeout: 300
+      when: rpm_ostree_kargs.changed or rpm_ostree_install.changed
+      tags: rpm-ostree
+
+    - name: Harden SSH
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/20-hardening.conf
+        content: |
+          PermitRootLogin no
+          PasswordAuthentication no
+          X11Forwarding no
+        owner: root
+        group: root
+        mode: "0600"
+      notify: Reload sshd
+
+    - name: Enable IP Forwarding for Tailscale and Podman
+      ansible.posix.sysctl:
+        name: "{{ item }}"
+        value: 1
+        reload: true
+      loop:
+        - net.ipv4.ip_forward
+        - net.ipv6.conf.all.forwarding
+
+    - name: Enable and start tailscaled service
+      ansible.builtin.systemd_service:
+        name: tailscaled
+        state: started
+        enabled: true
+
+    - name: Configure firewalld
+      tags: firewall
+      module_defaults:
+        ansible.posix.firewalld:
+          permanent: true
+      block:
+        - name: "[firewalld] Allow port 40000/udp in 'home' zone for Tailscale Peer Relay traffic"
+          ansible.posix.firewalld:
+            zone: home
+            port: 40000/udp
+            state: enabled
+
+        - name: "[firewalld] Allow Cockpit service in 'home' zone"
+          ansible.posix.firewalld:
+            zone: home
+            service: cockpit
+            state: enabled
+
+        - name: "[firewalld] Create 'tailnet' zone"
+          ansible.posix.firewalld:
+            zone: tailnet
+            state: present
+
+        - name: "[firewalld] Add tailsacle0 to 'tailnet' zone"
+          ansible.posix.firewalld:
+            zone: tailnet
+            interface: tailscale0
+            state: enabled
+
+        - name: "[firewalld] Bind tailnet IPs to 'tailnet' zone"
+          ansible.posix.firewalld:
+            zone: tailnet
+            source: 100.64.0.0/10
+            state: enabled
+
+        - name: "[firewalld] Set 'tailnet' zone target to ACCEPT"
+          ansible.posix.firewalld:
+            zone: tailnet
+            target: ACCEPT
+            state: present
+
+        - name: "[firewalld] Add 'from-tailnet' policy"
+          ansible.builtin.copy:
+            src: from-tailnet.xml
+            dest: /etc/firewalld/policies/
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Reload firewalld
+          ansible.builtin.systemd_service:
+            name: firewalld
+            state: reloaded
+
+  handlers:
+    - name: Reload sshd
+      ansible.builtin.systemd_service:
+        name: sshd
+        state: reloaded
+
+    - name: Reload journald
+      ansible.builtin.systemd_service:
+        name: systemd-journald
+        state: reloaded
