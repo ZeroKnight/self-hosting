@@ -37,6 +37,8 @@
         - natives
         - '' # Working directory
         - jre64/lib
+    steamcmd_debian_repo_url: http://pkgcache.lan/debian
+    steamcmd_debsec_repo_url: http://pkgcache.lan/debsec
   roles:
     - steamcmd
   tasks:

@@ -9,3 +9,7 @@ steamcmd:
 
 systemd:
   verify: true
+
+# Allow specifying a mirror/proxy for the Debian repos
+steamcmd_debian_repo_url: http://deb.debian.org/debian
+steamcmd_debsec_repo_url: http://security.debian.org
