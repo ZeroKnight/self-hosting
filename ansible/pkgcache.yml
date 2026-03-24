@@ -6,7 +6,7 @@
 # - https://blog.nginx.org/blog/nginx-caching-guide
 # - https://blog.nginx.org/blog/smart-efficient-byte-range-caching-nginx
 
-- name: Set up local package cache for various distros
+- name: Set up package cache host
   hosts: pkgcache.lan
   remote_user: root
   vars:
@@ -28,7 +28,7 @@
       ansible.builtin.file:
         path: "{{ cache.path }}"
         state: directory
-        owner: root
+        owner: www-data
         group: www-data
         mode: "0775"
 
@@ -44,7 +44,7 @@
 
     - name: Copy pkgcache site config to sites-available
       ansible.builtin.template:
-        src: "{{ site_filename }}.j2"
+        src: "pkgcache/{{ site_filename }}.j2"
         dest: "/etc/nginx/sites-available/{{ site_filename }}"
         owner: root
         group: root
@@ -71,52 +71,11 @@
         state: "{{ 'restarted' if copy_cfg.changed else 'started' }}"
         enabled: true
 
-    - name: Check for /etc/apt/sources.list
-      ansible.builtin.stat:
-        path: /etc/apt/sources.list
-      register: stat_sources
 
-    - name: Back up legacy /etc/apt/sources.list
-      ansible.builtin.command:
-        cmd: mv /etc/apt/sources.list /etc/apt/sources.list~
-        removes: /etc/apt/sources.list
-        creates: /etc/apt/sources.list~
-      when: stat_sources.stat.exists
-
-    - name: Point host repositories at own cache
-      ansible.builtin.deb822_repository:
-        name: "pkgcache-{{ item.name }}"
-        types: deb
-        uris: "http://localhost/{{ item.name }}"
-        suites: "{{ item.suites }}"
-        components:
-          - main
-          - contrib
-        trusted: true
-        enabled: true
-      loop:
-        - name: debian
-          suites:
-            - "{{ ansible_distribution_release }}"
-            - "{{ ansible_distribution_release }}-updates"
-        - name: debsec
-          suites:
-            - "{{ ansible_distribution_release }}-security"
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: Refresh package index
-      ansible.builtin.apt:
-        update_cache: true
-        upgrade: false
-
-- name: Configure host to use pkgcache
-  hosts:
-    - pihole
-    - debserver:!pkgcache.lan
+- name: Configure Debian servers to use pkgcache
+  hosts: debserver
   remote_user: root
-  vars:
-    pkgcache_hostname: pkgcache.lan
+  ignore_unreachable: true
   tasks:
     - name: Check for /etc/apt/sources.list
       ansible.builtin.stat:
@@ -130,54 +89,68 @@
         creates: /etc/apt/sources.list~
       when: stat_sources.stat.exists
 
-    - name: Add proxied Debian sources
-      ansible.builtin.deb822_repository:
-        name: "pkgcache-{{ item.name }}"
-        types: deb
-        uris: "http://{{ pkgcache_hostname }}/{{ item.name }}"
-        suites: "{{ item.suites }}"
-        components:
-          - main
-          - contrib
-        trusted: true
-        enabled: true
-      loop:
-        - name: debian
-          suites:
-            - "{{ ansible_distribution_release }}"
-            - "{{ ansible_distribution_release }}-updates"
-        - name: debsec
-          suites:
-            - "{{ ansible_distribution_release }}-security"
-      loop_control:
-        label: "{{ item.name }}"
+    - name: Point Debian sources at pkgcache host
+      ansible.builtin.template:
+        src: pkgcache/debian.sources.j2
+        dest: /etc/apt/sources.list.d/debian.sources
+        owner: root
+        group: root
+        mode: "0644"
+        backup: true
+      register: debian_sources
 
-    - name: Check if host is Proxmox Virtual Environment
+    - name: Find obsolete pkgcache-* sources
+      ansible.builtin.find:
+        path: /etc/apt/sources.list.d
+        patterns: pkgcache-*.sources
+        file_type: file
+      register: obsolete_pkgcache_sources
+
+    - name: Remove obsolete pkgcache-* sources
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ obsolete_pkgcache_sources.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+
+    - name: Update apt package index
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: false
+      when: debian_sources.changed
+
+
+- name: Configure Proxmox repositories to use pkgcache
+  hosts: proxmox
+  remote_user: root
+  tasks:
+    - name: Stat /etc/pve
       ansible.builtin.stat:
         path: /etc/pve
       register: stat_pve
 
-    # NOTE: Assumes newer deb822 format
-    - name: Proxmox Virtual Environment specific repos
-      when: stat_pve.stat.exists and stat_pve.stat.isdir
-      block:
-        - name: Add proxied Proxmox non-enterprise source
-          ansible.builtin.deb822_repository:
-            name: pkgcache-pve-non-enterprise
-            types: deb
-            uris: http://{{ pkgcache_hostname }}/proxmox
-            suites: "{{ ansible_distribution_release }}"
-            components: pve-no-subscription
-            signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
-            trusted: true
-            enabled: true
+    - name: Assert that host is running Proxmox Virtual Environment
+      ansible.builtin.assert:
+        that:
+          - stat_pve.stat.exists
+          - stat_pve.stat.isdir
+        fail_msg: Host doesn't seem to be running Proxmox Virtual Environment
 
-        - name: Disable upstream Proxmox non-enterprise source
-          ansible.builtin.deb822_repository:
-            name: pve-non-enterprise
-            enabled: false
+    # TODO: Refactor to use a template once we upgrade pve.lan
+    - name: Add proxied Proxmox non-enterprise source
+      ansible.builtin.deb822_repository:
+        name: pve-non-enterprise
+        types: deb
+        uris: http://{{ pkgcache_hostname }}/proxmox
+        suites: "{{ ansible_facts.distribution_release }}"
+        components: pve-no-subscription
+        signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
+      register: proxmox_non_enterprise_sources
+      tags: never
 
-    - name: Refresh package index
+    - name: Update apt package index
       ansible.builtin.apt:
         update_cache: true
         upgrade: false
+      when: proxmox_non_enterprise_sources.changed

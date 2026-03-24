@@ -1,0 +1,13 @@
+Types: deb
+URIs: http://{{ pkgcache_hostname }}/debian
+Suites: {{ ansible_facts.distribution_release }} {{ ansible_facts.distribution_release }}-updates
+Components: main contrib {{ pkgcache_additional_components | default('') }}
+X-Repolib-Name: pkgcache-debian
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+URIs: http://{{ pkgcache_hostname }}/debsec
+Suites: {{ ansible_facts.distribution_release }}-security
+Components: main contrib {{ pkgcache_additional_components | default('') }}
+X-Repolib-Name: pkgcache-debsec
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
