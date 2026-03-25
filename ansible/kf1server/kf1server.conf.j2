@@ -6,7 +6,7 @@ server {
 
     server_name {{ nginx.server_name | join(' ') }};
 
-    root {{ home }}/custom;
+    root {{ server_user.home }}/custom;
 
     access_log /var/log/nginx/access.log kf1;
 
@@ -28,22 +28,22 @@ server {
     }
 
     location ~* \.rom$ {
-        root {{ home }}/custom/Maps;
+        root {{ server_user.home }}/custom/Maps;
     }
 
     location ~* \.utx$ {
-        root {{ home }}/custom/Textures;
+        root {{ server_user.home }}/custom/Textures;
     }
 
     location ~* \.usx$ {
-        root {{ home }}/custom/StaticMeshes;
+        root {{ server_user.home }}/custom/StaticMeshes;
     }
 
     location ~* \.(ogg|mp3)$ {
-        root {{ home }}/custom/Music;
+        root {{ server_user.home }}/custom/Music;
     }
 
     location ~* \.uax$ {
-        root {{ home }}/custom/Sounds;
+        root {{ server_user.home }}/custom/Sounds;
     }
 }

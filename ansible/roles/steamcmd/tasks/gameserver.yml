@@ -34,6 +34,16 @@
         owner: root
         group: root
 
+    - name: Copy systemd mount units
+      ansible.builtin.template:
+        src: "{{ item.src }}.j2"
+        dest: "/etc/systemd/system/{{ item.name }}"
+        mode: "0644"
+        owner: root
+        group: root
+      loop: "{{ systemd.mount_units }}"
+      when: systemd.mount_units is defined
+
     - name: Copy additional systemd units
       ansible.builtin.template:
         src: "{{ item }}.j2"
@@ -42,6 +52,7 @@
         owner: root
         group: root
       loop: "{{ systemd.extra_units }}"
+      when: systemd.extra_units is defined
 
     - name: Create directory for game server drop-in service files
       ansible.builtin.file:
@@ -59,12 +70,30 @@
         owner: root
         group: root
 
+    # NOTE: systemd is a bit annoying and checks ExecStart directives for
+    # non-existent executables. Since a service might refer to an executable
+    # on one of the mounts, we'll eagerly start it so that verify won't fail.
+    - name: Start systmed mount units
+      ansible.builtin.systemd_service:
+        name: "{{ item.name }}"
+        state: started
+        daemon_reload: true
+      loop: "{{ systemd.mount_units }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: (systemd.verify | default(True)) and systemd.mount_units is defined
+
     - name: Verify systemd units
+      vars:
+        units:
+          - "{{ systemd.service_file }}"
+          - "{{ systemd.extra_units | default(None) }}"
+          - "{{ (systemd.mount_units is defined) | ternary(systemd.mount_units | map(attribute='name'), None) }}"
       ansible.builtin.command:
-        cmd: systemd-analyze verify {{ item }}
-      loop: "{{ [('/etc/systemd/system', systemd.service_file | basename) | path_join] + systemd.extra_units }}"
+        cmd: systemd-analyze verify /etc/systemd/system/{{ item | basename }}
+      loop: "{{ units | flatten }}"
       changed_when: false
-      when: systemd.verify
+      when: systemd.verify | default(True)
 
     - name: Enable game server service
       ansible.builtin.systemd_service:

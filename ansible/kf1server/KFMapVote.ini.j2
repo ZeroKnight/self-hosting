@@ -1,5 +1,5 @@
 [KFMapVoteV2.KFVotingHandler]
-VoteTimeLimit={{ kf1server.settings.voting.time_limit }}
+VoteTimeLimit={{ server_settings.voting.time_limit }}
 ScoreBoardDelay=5
 bAutoOpen=True
 MidGameVotePercent=50
@@ -8,7 +8,7 @@ bAccumulationMode=False
 bEliminationMode=False
 MinMapCount=2
 MapVoteHistoryType=xVoting.MapVoteHistory_INI
-RepeatLimit={{ kf1server.settings.voting.map_cooldown }}
+RepeatLimit={{ server_settings.voting.map_cooldown }}
 DefaultGameConfig=0
 bDefaultToCurrentGameType=True
 bMapVote=True
@@ -20,5 +20,5 @@ MapListLoaderType=xVoting.DefaultMapListLoader
 ServerNumber=1
 CurrentGameConfig=1
 {% for name, difficulty in ('Normal', 2), ('Hard', 4), ('Suicidal', 5), ('Hell on Earth', 7) %}
-GameConfig=(GameClass="KFMod.KFGameType",Prefix="KF",Acronym="KF",GameName="{{ loop.index }}. Killing Floor ({{ name }})",Mutators="{{ kf1server.settings.mutators | join(',') }}",Options="Difficulty={{ difficulty }}")
+GameConfig=(GameClass="KFMod.KFGameType",Prefix="KF",Acronym="KF",GameName="{{ loop.index }}. Killing Floor ({{ name }})",Mutators="{{ server_settings.mutators | join(',') }}",Options="Difficulty={{ difficulty }}")
 {% endfor %}
