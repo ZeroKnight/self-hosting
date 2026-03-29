@@ -1,0 +1,13 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Linkwarden Meilisearch Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Image=docker.io/getmeili/meilisearch:v1.12.8
+Pod=linkwarden.pod
+EnvironmentFile=./linkwarden.env
+Volume=linkwarden-search.volume:/meili_data

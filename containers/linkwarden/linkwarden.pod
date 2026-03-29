@@ -1,0 +1,7 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Linkwarden Pod
+
+[Pod]
+PublishPort=3200:3000
