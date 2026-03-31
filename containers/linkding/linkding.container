@@ -1,0 +1,19 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Linkding Container
+
+Requires=var-mnt-media.mount
+After=var-mnt-media.mount
+
+[Service]
+Restart=on-failure
+
+[Container]
+Image=ghcr.io/sissbruecker/linkding:1.45.0
+PublishPort=3300:9090
+Volume=/var/mnt/media/links/linkding:/etc/linkding/data
+UserNS=keep-id:uid=33,gid=33
+
+Environment=LD_SUPERUSER_NAME=root
+Secret=linkding-superuser-password,type=env,target=LD_SUPERUSER_PASSWORD
