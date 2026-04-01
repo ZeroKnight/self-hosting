@@ -21,7 +21,7 @@
         cmd: >
           rpm-ostree kargs --unchanged-exit-77
             --append-if-missing=brcmfmac.roamoff=1
-            --append-if-missing=brcmfmac.feature_disable=0x82000
+            --append-if-missing=brcmfmac.feature_disable=0x200000
       register: rpm_ostree_kargs
       changed_when: rpm_ostree_kargs.rc != 77
       failed_when: rpm_ostree_kargs.rc not in (0, 77)
