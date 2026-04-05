@@ -1,0 +1,19 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Linkding Background Tasks Container
+
+Requires=var-mnt-media.mount
+After=var-mnt-media.mount
+
+Requires=linkding.container
+After=linkding.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Image=ghcr.io/sissbruecker/linkding:1.45.0
+Entrypoint=
+Exec=python manage.py run_huey -f
+Volume=/var/mnt/media/links/linkding:/etc/linkding/data
