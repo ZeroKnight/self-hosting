@@ -6,3 +6,7 @@
 *-passwd.butane
 
 *.env
+
+# Ansible vaults
+ansible/**/*vault*
+ansible/**/.*vault*
