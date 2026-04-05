@@ -17,3 +17,9 @@ UserNS=keep-id:uid=33,gid=33
 
 Environment=LD_SUPERUSER_NAME=root
 Secret=linkding-superuser-password,type=env,target=LD_SUPERUSER_PASSWORD
+
+HealthCmd=curl --silent --fail http://localhost:9090/health || exit 1
+HealthInterval=1m
+HealthRetries=3
+HealthTimeout=3s
+HealthStartPeriod=30s
