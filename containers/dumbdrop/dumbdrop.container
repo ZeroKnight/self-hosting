@@ -1,0 +1,26 @@
+# vim: ft=systemd
+
+[Unit]
+Description=
+
+Requires=var-mnt-media.mount
+After=var-mnt-media.mount
+
+[Service]
+Restart=on-failure
+Environment=DUMBDROP_PORT=3400
+
+[Container]
+Image=docker.io/dumbwareio/dumbdrop
+PublishPort=${DUMBDROP_PORT}:3000
+Volume=/var/mnt/media/drop:/app/uploads
+
+Environment=UPLOAD_DIR=/app/uploads
+Environment=DUMBDROP_TITLE=ZeroDrop
+Environment=MAX_FILE_SIZE=2048
+Environment=SHOW_FILE_LIST=true
+Environment=TRUST_PROXY=true
+Environment=TRUSTED_PROXY_IPS=192.168.1.100
+Environment=ALLOWED_ORIGINS=http://shipyard.lan:${DUMBDROP_PORT},https://drop.ts.dimensionzero.net,https://drop.zeronet.dimensionzero.net
+
+Secret=dumbdrop-pin,type=env,target=DUMBDROP_PIN
