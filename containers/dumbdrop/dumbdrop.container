@@ -1,7 +1,7 @@
 # vim: ft=systemd
 
 [Unit]
-Description=
+Description=DumbDrop Container
 
 Requires=var-mnt-media.mount
 After=var-mnt-media.mount
