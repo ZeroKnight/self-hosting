@@ -1,0 +1,13 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Excalidraw Collaboration Container
+Requires=excalidraw.container
+After=excalidraw.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Image=docker.io/excalidraw/excalidraw-room:latest
+PublishPort=3201:80

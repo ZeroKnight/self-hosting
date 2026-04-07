@@ -1,0 +1,13 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Excalidraw Container
+Wants=excalidraw-room.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Image=excalidraw.build
+PublishPort=3200:80
+Environment=NODE_ENV=production

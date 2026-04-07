@@ -1,0 +1,9 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Build unit for Excalidraw container patches
+
+[Build]
+SetWorkingDirectory=.
+PodmanArgs=--build-arg=collab_server_url=https://draw2.dimensionzero.net
+ImageTag=excalidraw-patched:latest

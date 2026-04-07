@@ -1,0 +1,8 @@
+FROM docker.io/excalidraw/excalidraw:latest
+
+ARG collab_server_url
+
+# Patch hard-coded collaboration server URL
+# Source: https://blog.lrvt.de/selfhosting-excalidraw-with-collaboration-support/
+RUN find /usr/share/nginx/html/assets -type f -name "*.js" \
+    -exec sed -i 's|https://oss-collab\.excalidraw\.com|'${collab_server_url}'|g' {} +
