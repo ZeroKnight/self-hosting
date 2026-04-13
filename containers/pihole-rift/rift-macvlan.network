@@ -1,0 +1,11 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Rift MACVLAN Network
+
+[Network]
+NetworkName=rift-macvlan
+Driver=macvlan
+InterfaceName=end0
+Subnet=192.168.0.0/22
+IPRange=192.168.0.10-192.168.0.20

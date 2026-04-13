@@ -20,7 +20,9 @@ Environment=FTLCONF_misc_etc_dnsmasq_d=true
 
 Secret=pihole-rift-api-password,type=env,target=FTLCONF_webserver_api_password
 
-Network=host
+# NOTE: Don't need to publish ports when using macvlan
+Network=rift-macvlan.network
+
 HostName=pihole3
 DNS=127.0.0.1
 DNS=192.168.1.250
