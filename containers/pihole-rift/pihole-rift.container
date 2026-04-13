@@ -1,0 +1,38 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Rift Pi-Hole Container
+
+[Service]
+Restart=on-failure
+ExecStartPre=mkdir -p /tmp/pihole-logs
+
+[Container]
+Image=docker.io/pihole/pihole:2026.04.0
+ContainerName=pihole-rift
+Volume=pihole-rift.volume:/etc/pihole:Z
+Volume=./dnsmasq.d:/etc/dnsmasq.d:Z
+Volume=/tmp/pihole-logs:/var/log/pihole:Z
+Memory=2g
+
+Environment=TZ=America/Los_Angeles
+Environment=FTLCONF_misc_etc_dnsmasq_d=true
+
+Secret=pihole-rift-api-password,type=env,target=FTLCONF_webserver_api_password
+
+Network=host
+HostName=pihole3
+DNS=127.0.0.1
+DNS=192.168.1.250
+DNS=9.9.9.9
+
+# Needed to act as a DHCP server
+AddCapability=NET_ADMIN
+
+# Allow FTL to run with higher priority
+AddCapability=SYS_NICE
+
+# Explicitly grant capabilities that FTL wants
+AddCapability=CHOWN
+AddCapability=NET_BIND_SERVICE
+AddCapability=NET_RAW
