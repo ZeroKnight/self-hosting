@@ -21,7 +21,7 @@ Environment=FTLCONF_misc_etc_dnsmasq_d=true
 Secret=pihole-rift-api-password,type=env,target=FTLCONF_webserver_api_password
 
 Network=host
-HostName=pihole3
+HostName=pihole2
 DNS=127.0.0.1
 DNS=192.168.1.250
 DNS=9.9.9.9
