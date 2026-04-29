@@ -1,0 +1,200 @@
+# vim: ft=yaml.ansible
+
+- name: Set up Forgejo LXC
+  hosts: forgejo.lan
+  remote_user: root
+  vars:
+    forgejo_domain: git.ts.dimensionzero.net
+    git_user_home: /var/lib/git
+    forgejo_work_dir: /var/lib/forgejo
+    forgejo_data_dir: "{{ (forgejo_work_dir, 'data') | path_join }}"
+    mail_enabled: true
+    mail_domain: dimensionzero.net
+    smtp_host: smtp-relay.lan
+    smtp_port: 25
+    smtp_user: lanuser
+    smtp_pass: !vault |
+      $ANSIBLE_VAULT;1.2;AES256;dzselfhost
+      35343932326466613533386337383036366633356431616233356130616238666436323737633161
+      3834633634623566363435666265356162636664346666660a363562313961323134366431643631
+      39616632623832626366313036653434653064366137663231373933313630626466613762353339
+      3766373663646362340a313039373436643933663466393432633263666365653239386632383866
+      39646336386539643263356332643138636361356232386634366565336165663730643764326366
+      6333353963393237303436646337643263353838343363623133
+    trusted_reverse_proxies:
+      - 192.168.1.100/22
+
+  tasks:
+    - name: Install git, git-lfs, xz, memcached
+      ansible.builtin.package:
+        state: present
+        name:
+          - git
+          - git-lfs
+          - memcached
+          - libmemcached-tools
+          - xz-utils
+      tags: install
+
+    - name: Create git group
+      ansible.builtin.group:
+        name: git
+        system: true
+        state: present
+      tags: setup
+
+    - name: Create git user/group
+      ansible.builtin.user:
+        name: git
+        group: git
+        comment: Git Version Control
+        system: true
+        shell: /bin/bash
+        home: "{{ git_user_home }}"
+        create_home: true
+        state: present
+      tags: setup
+
+    - name: Ensure /etc/forgejo exists
+      ansible.builtin.file:
+        path: /etc/forgejo
+        state: directory
+        owner: root
+        group: git
+        mode: "0770"
+      tags: setup
+
+    - name: Ensure Forgejo work directory exists
+      ansible.builtin.file:
+        path: "{{ forgejo_work_dir }}"
+        state: directory
+        owner: git
+        group: git
+        mode: "0770"
+      tags: setup
+
+    - name: Ensure Forgejo data directory exists
+      ansible.builtin.file:
+        path: "{{ forgejo_data_dir }}"
+        state: directory
+        owner: git
+        group: git
+        mode: "0775"
+      tags: setup
+
+    - name: Allow Git Wire Protocol in OpenSSH
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/90-git-protocol.conf
+        content: |
+          # Allow Git Wire Protocol
+          AcceptEnv GIT_PROTOCOL
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart sshd
+      tags: setup
+
+    - name: Get Forgejo binary release
+      tags: install
+      vars:
+        version: "{{ response.json.tag_name | trim('v') }}"
+        assets: "{{ response.json.assets | items2dict(key_name='name', value_name='browser_download_url') }}"
+        binary_name: "forgejo-{{ version }}-linux-amd64"
+        download_path: "/root/{{ binary_name }}.xz"
+      block:
+        - name: Query Codeberg API for latest release
+          ansible.builtin.uri:
+            url: https://codeberg.org/api/v1/repos/forgejo/forgejo/releases/latest
+          register: response
+
+        - name: Download latest Forgejo binary
+          ansible.builtin.get_url:
+            url: "{{ assets[binary_name] }}.xz"
+            dest: "{{ download_path }}"
+            checksum: "sha256:{{ assets[binary_name] }}.xz.sha256"
+            owner: root
+            group: root
+            mode: "0644"
+          register: download
+
+        - name: Decompress Forgejo binary
+          community.general.decompress:
+            src: "{{ download_path }}"
+            dest: "/usr/local/bin/forgejo"
+            format: xz
+            remove: false
+            owner: root
+            group: root
+            mode: "0755"
+          when: download.changed
+
+    - name: Forgejo systemd unit
+      tags: systemd
+      block:
+        - name: Ensure local systemd system units directory exists
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+          loop:
+            - /usr/local/lib/systemd
+            - /usr/local/lib/systemd/system
+
+        - name: Get latest Forgejo systemd unit
+          ansible.builtin.get_url:
+            url: https://codeberg.org/forgejo/forgejo/raw/branch/forgejo/contrib/systemd/forgejo.service
+            dest: /usr/local/lib/systemd/system/forgejo.service
+            owner: root
+            group: root
+            mode: "0644"
+          notify: daemon reload
+
+        - name: Create Forgejo service drop-in directory
+          ansible.builtin.file:
+            path: /etc/systemd/system/forgejo.service.d
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Copy Forgejo service drop-in
+          ansible.builtin.template:
+            src: forgejo/override.conf.j2
+            dest: /etc/systemd/system/forgejo.service.d/override.conf
+            owner: root
+            group: root
+            mode: "0644"
+          notify: daemon reload
+
+        - name: Enable Forgejo service
+          ansible.builtin.systemd_service:
+            name: forgejo
+            enabled: true
+
+    - name: Enable memcached service
+      ansible.builtin.systemd_service:
+        name: memcached
+        enabled: true
+      tags: systemd
+
+    - name: Copy Forgejo app.ini
+      ansible.builtin.template:
+        src: forgejo/app.ini.j2
+        dest: /etc/forgejo/app.ini
+        owner: root
+        group: git
+        mode: "0660"
+        backup: true
+      tags: config
+
+  handlers:
+    - name: daemon reload
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: reload sshd
+      ansible.builtin.systemd_service:
+        name: ssh
+        state: restarted

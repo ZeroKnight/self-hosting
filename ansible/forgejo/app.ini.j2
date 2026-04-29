@@ -1,0 +1,54 @@
+APP_NAME = ZeroNet Forgejo
+RUN_USER = git
+RUN_MODE = prod
+WORK_PATH = {{ forgejo_work_dir }}
+
+[server]
+HTTP_PORT = 80
+PROTOCOL = http
+DOMAIN = {{ forgejo_domain | default(inventory_hostname) }}
+ROOT_URL = https://{{ forgejo_domain }}
+APP_DATA_PATH = {{ forgejo_data_dir }}
+ENABLE_ACME = false
+ENABLE_GZIP = true
+DISABLE_SSH = true
+
+[database]
+DB_TYPE = sqlite3
+PATH = {{ (forgejo_data_dir, 'forgejo.db') | path_join }}
+
+[cache]
+ADAPTER = memcache
+HOST = 127.0.0.1:11211
+ITEM_TTL = 16h
+
+[repository]
+ROOT = {{ (forgejo_data_dir, 'forgejo-repositories') | path_join }}
+
+[lfs]
+PATH = {{ (forgejo_data_dir, 'lfs') | path_join }}
+
+[mailer]
+ENABLED = {{ mail_enabled | lower }}
+{% if mail_enabled %}
+SMTP_ADDR = {{ smtp_host }}
+SMTP_PORT = {{ smtp_port }}
+FROM = git@{{ mail_domain | default(inventory_hostname) }}
+USER = {{ smtp_user }}
+PASSWD = {{ smtp_pass }}
+{% endif %}
+
+[service]
+DISABLE_REGISTRATION = false
+DEFAULT_KEEP_EMAIL_PRIVATE = true
+ALLOW_DOTS_IN_USERNAMES = false
+{% if mail_enabled %}
+REGISTER_EMAIL_CONFIRM = true
+ENABLE_NOTIFY_MAIL = true
+NO_REPLY_ADDRESS = noreply.{{ mail_domain }}
+{% endif %}
+
+[security]
+INSTALL_LOCK = true
+REVERSE_PROXY_TRUSTED_PROXIES = {{ trusted_reverse_proxies | join(',') }}
+LOGIN_REMEMBER_DAYS = 120
