@@ -1,0 +1,26 @@
+# vim: ft=yaml.ansible
+
+- name: Add Tailscale repository
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_facts.distribution }}.yml"
+  tags:
+    - tailscale
+    - install
+
+- name: Install Tailscale
+  become: true
+  ansible.builtin.package:
+    name: tailscale
+    state: present
+  tags:
+    - tailscale
+    - install
+
+- name: Enable and start tailscaled service
+  ansible.builtin.systemd_service:
+    name: tailscaled
+    state: started
+    enabled: true
+  tags:
+    - tailscale
+    - systemd

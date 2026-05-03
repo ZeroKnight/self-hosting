@@ -23,7 +23,8 @@
       6333353963393237303436646337643263353838343363623133
     trusted_reverse_proxies:
       - 192.168.1.100/22
-
+  roles:
+    - tailscale
   tasks:
     - name: Install git, git-lfs, xz, memcached
       ansible.builtin.package:
