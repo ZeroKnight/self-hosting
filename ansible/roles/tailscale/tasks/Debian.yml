@@ -9,7 +9,9 @@
     suites: "{{ release }}"
     components: main
     signed_by: "https://pkgs.tailscale.com/stable/debian/{{ release }}.noarmor.gpg"
+  register: tailscale_deb_repo
 
 - name: Update package index
   ansible.builtin.apt:
     update_cache: true
+  when: tailscale_deb_repo.changed

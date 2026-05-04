@@ -3,6 +3,10 @@
 - name: Add Tailscale repository
   ansible.builtin.include_tasks:
     file: "{{ ansible_facts.distribution }}.yml"
+    apply:
+      tags:
+        - tailscale
+        - install
   tags:
     - tailscale
     - install
