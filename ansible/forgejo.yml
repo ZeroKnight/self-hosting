@@ -5,8 +5,8 @@
   remote_user: root
   vars:
     forgejo_name: ZeroNet Forgejo
-    forgejo_domain: git.ts.dimensionzero.net
-    forgejo_listen_port: 80
+    forgejo_domain: forgejo.time-wyvern.ts.net
+    forgejo_listen_port: 8000
     forgejo_work_dir: /var/lib/forgejo
     forgejo_data_dir: "{{ (forgejo_work_dir, 'data') | path_join }}"
     git_user_home: /var/lib/git
@@ -28,10 +28,11 @@
   roles:
     - tailscale
   tasks:
-    - name: Install git, git-lfs, xz, memcached
+    - name: Install caddy, git, git-lfs, memcached, xz
       ansible.builtin.package:
         state: present
         name:
+          - caddy
           - git
           - git-lfs
           - memcached
@@ -176,6 +177,35 @@
             name: forgejo
             enabled: true
 
+    - name: Set up Caddy
+      tags:
+        - setup
+        - caddy
+      block:
+        - name: Copy Caddyfile
+          ansible.builtin.template:
+            src: forgejo/Caddyfile.j2
+            dest: /etc/caddy/Caddyfile
+            owner: root
+            group: root
+            mode: "0644"
+            validate: caddy validate --config /etc/caddy/Caddyfile
+          notify: reload caddy
+
+        - name: Allow Caddy to request Tailscale certs
+          ansible.builtin.copy:
+            dest: /etc/systemd/system/tailscaled.service.d/caddy-certs.conf
+            content: |
+              # Allow Caddy to request Tailscale certs
+              [Service]
+              Environment=TS_PERMIT_CERT_UID=caddy
+            owner: root
+            group: root
+            mode: "0644"
+          notify:
+            - daemon reload
+            - restart tailscaled
+
     - name: Enable memcached service
       ansible.builtin.systemd_service:
         name: memcached
@@ -200,4 +230,14 @@
     - name: reload sshd
       ansible.builtin.systemd_service:
         name: ssh
+        state: restarted
+
+    - name: reload caddy
+      ansible.builtin.systemd_service:
+        name: caddy
+        state: reloaded
+
+    - name: restart tailscaled
+      ansible.builtin.systemd_service:
+        name: tailscaled
         state: restarted
