@@ -4,10 +4,12 @@
   hosts: forgejo.lan
   remote_user: root
   vars:
+    forgejo_name: ZeroNet Forgejo
     forgejo_domain: git.ts.dimensionzero.net
-    git_user_home: /var/lib/git
+    forgejo_listen_port: 80
     forgejo_work_dir: /var/lib/forgejo
     forgejo_data_dir: "{{ (forgejo_work_dir, 'data') | path_join }}"
+    git_user_home: /var/lib/git
     mail_enabled: true
     mail_domain: dimensionzero.net
     smtp_host: smtp-relay.lan

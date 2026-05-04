@@ -1,11 +1,11 @@
-APP_NAME = ZeroNet Forgejo
+APP_NAME = {{ forgejo_name }}
 RUN_USER = git
 RUN_MODE = prod
 WORK_PATH = {{ forgejo_work_dir }}
 
 [server]
-HTTP_PORT = 80
-PROTOCOL = http
+HTTP_PORT = {{ forgejo_listen_port | default(80) }}
+PROTOCOL = {{ forgejo_listen_protocol | default('http') }}
 DOMAIN = {{ forgejo_domain | default(inventory_hostname) }}
 ROOT_URL = https://{{ forgejo_domain }}
 APP_DATA_PATH = {{ forgejo_data_dir }}
@@ -33,7 +33,7 @@ ENABLED = {{ mail_enabled | lower }}
 {% if mail_enabled %}
 SMTP_ADDR = {{ smtp_host }}
 SMTP_PORT = {{ smtp_port }}
-FROM = git@{{ mail_domain | default(inventory_hostname) }}
+FROM = "{{ forgejo_name | default('Forgejo Git') }}" <git@{{ mail_domain | default(inventory_hostname) }}>
 USER = {{ smtp_user }}
 PASSWD = {{ smtp_pass }}
 {% endif %}
