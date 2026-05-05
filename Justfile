@@ -20,3 +20,8 @@ create-secret name host='shipyard.lan':
     read -s -p 'Secret value: ' secret
     echo
     echo -n "$secret" | ssh '{{ host }}' podman secret create '{{ name }}' -
+
+# Run a command with the Forgejo CLI
+[group('forgejo')]
+forgejo cmd *args:
+    ssh root@forgejo.lan -- "su -l git -c 'forgejo -w /var/lib/forgejo -c /etc/forgejo/app.ini {{ cmd }} {{ args }}'"
