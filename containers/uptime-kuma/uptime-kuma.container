@@ -1,0 +1,20 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Uptime Kuma Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Image=docker.io/louislam/uptime-kuma:2-slim
+PublishPort=3010:3001
+Volume=uptime-kuma.volume:/app/data
+
+Volume=${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/podman.sock:Z
+SecurityLabelType=container_runtime_t
+
+AddCapability=NET_RAW
+
+[Install]
+WantedBy=default.target

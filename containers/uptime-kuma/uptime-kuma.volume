@@ -1,0 +1,6 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Uptime Kuma Data Volume
+
+[Volume]
