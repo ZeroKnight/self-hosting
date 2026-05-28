@@ -1,0 +1,5 @@
+Types: deb
+URIs: http://{{ pkgcache_hostname }}/proxmox/{{ pkgcache_proxmox_product }}
+Suites: {{ ansible_facts.distribution_release }}
+Components: {{ pkgcache_proxmox_product }}-no-subscription
+Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg

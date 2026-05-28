@@ -130,27 +130,57 @@
         path: /etc/pve
       register: stat_pve
 
-    - name: Assert that host is running Proxmox Virtual Environment
+    - name: Stat /etc/proxmox-backup
+      ansible.builtin.stat:
+        path: /etc/proxmox-backup
+      register: stat_pbs
+
+    - name: Set Proxmox Product
+      vars:
+        products:
+          pve: "{{ stat_pve.stat.exists }}"
+          pbs: "{{ stat_pbs.stat.exists }}"
+      ansible.builtin.set_fact:
+        pkgcache_proxmox_product: "{{ item.key }}"
+      loop: "{{ products | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+      when: item.value
+
+    - name: Host is running Proxmox
       ansible.builtin.assert:
-        that:
-          - stat_pve.stat.exists
-          - stat_pve.stat.isdir
-        fail_msg: Host doesn't seem to be running Proxmox Virtual Environment
+        that: pkgcache_proxmox_product is defined
+        success_msg: "Host is running {{ pkgcache_proxmox_product }}"
+        fail_msg: Host does not appear to be a Proxmox host
 
-    # TODO: Refactor to use a template once we upgrade pve.lan
-    - name: Add proxied Proxmox non-enterprise source
-      ansible.builtin.deb822_repository:
-        name: pve-non-enterprise
-        types: deb
-        uris: http://{{ pkgcache_hostname }}/proxmox
-        suites: "{{ ansible_facts.distribution_release }}"
-        components: pve-no-subscription
-        signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
-      register: proxmox_non_enterprise_sources
-      tags: never
+    - name: Proxy Proxmox Sources
+      vars:
+        pkgcache_proxmox_non_ent_sources: "/etc/apt/sources.list.d/{{ pkgcache_proxmox_product }}-non-enterprise"
+      block:
+        - name: Add proxied non-enterprise source
+          ansible.builtin.template:
+            src: pkgcache/proxmox.sources.j2
+            dest: "{{ pkgcache_proxmox_non_ent_sources }}.sources"
+            backup: true
+            owner: root
+            group: root
+            mode: "0644"
+          notify: Update apt package index
 
+        - name: Check for legacy non-enterprise sources
+          ansible.builtin.stat:
+            path: "{{ pkgcache_proxmox_non_ent_sources }}.list"
+          register: stat_legacy
+
+        - name: Back up legacy non-enterprise sources
+          ansible.builtin.command:
+            cmd: mv "{{ pkgcache_proxmox_non_ent_sources }}.list" "{{ pkgcache_proxmox_non_ent_sources }}.list~"
+            removes: "{{ pkgcache_proxmox_non_ent_sources }}.list"
+            creates: "{{ pkgcache_proxmox_non_ent_sources }}.list~"
+          when: stat_legacy.stat.exists
+
+  handlers:
     - name: Update apt package index
       ansible.builtin.apt:
         update_cache: true
         upgrade: false
-      when: proxmox_non_enterprise_sources.changed
