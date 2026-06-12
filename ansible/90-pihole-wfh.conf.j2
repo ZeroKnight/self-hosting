@@ -1,0 +1,21 @@
+# Treat Work Computers differently
+#
+# Work computers are usually domained to another corporate network and as
+# a result will try to represent themselves as such. dnsmasq will constantly
+# raise a warning message like the following for these hosts:
+#
+#   Ignoring domain CONFIG_DOMAIN for DHCP host name HOSTNAME
+#
+# To remedy this, we can statically lease an IP to each work computer and then
+# allow that IP to claim to be part of its domain. Second, we set DHCP option
+# 15 to be empty so that Windows hosts don't try to eagerly resolve unqualified
+# domain names suffixed with the domain it is bound to, as only the corporate
+# network it belongs to can do that anyway.
+{% for domain, hosts in work_hosts.items() %}
+    {%- for name, host in hosts.items() %}
+
+dhcp-host={{ host['mac'] }},set:wfh,{{ host['ip'] }},,1d
+domain={{ name }}.{{ domain }},{{ host['ip'] }}
+dhcp-option=tag:wfh,15,
+    {% endfor %}
+{% endfor %}

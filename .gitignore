@@ -10,3 +10,6 @@
 # Ansible vaults
 ansible/**/*vault*
 ansible/**/.*vault*
+
+# Private Ansible variables
+ansible/pihole-wfh-vars.yml

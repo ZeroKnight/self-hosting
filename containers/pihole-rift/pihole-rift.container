@@ -5,14 +5,13 @@ Description=Rift Pi-Hole Container
 
 [Service]
 Restart=on-failure
-ExecStartPre=mkdir -p /tmp/pihole-logs
 
 [Container]
-Image=docker.io/pihole/pihole:2026.04.0
+Image=docker.io/pihole/pihole:2026.05.0
 ContainerName=pihole-rift
 Volume=pihole-rift.volume:/etc/pihole:Z
 Volume=./dnsmasq.d:/etc/dnsmasq.d:Z
-Volume=/tmp/pihole-logs:/var/log/pihole:Z
+Volume=/var/log/pihole:/var/log/pihole:Z
 Memory=2g
 
 Environment=TZ=America/Los_Angeles

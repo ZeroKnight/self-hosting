@@ -1,0 +1,45 @@
+- name: Apply Pi-Hole configuration (Metal/LXC)
+  hosts:
+    - pihole.lan
+    - pihole3.lan
+  remote_user: root
+  vars_files:
+    - pihole-wfh-vars.yml
+  tasks:
+    - name: Apply special configuration to work computers
+      ansible.builtin.template:
+        src: 90-pihole-wfh.conf.j2
+        dest: /etc/dnsmasq.d/90-pihole-wfh.conf
+        owner: root
+        group: root
+        mode: "0644"
+        lstrip_blocks: true
+      notify: restart FTL
+
+  handlers:
+    - name: restart FTL
+      ansible.builtin.systemd_service:
+        name: pihole-FTL
+        state: restarted
+
+- name: Apply Pi-Hole configuration (Podman Container)
+  hosts: rift.lan
+  vars_files:
+    - pihole-wfh-vars.yml
+  tasks:
+    - name: Apply special configuration to work computers
+      become: true
+      ansible.builtin.template:
+        src: 90-pihole-wfh.conf.j2
+        dest: /etc/containers/systemd/pihole-rift/dnsmasq.d/90-pihole-wfh.conf
+        owner: root
+        group: root
+        mode: "0644"
+        lstrip_blocks: true
+      notify: restart FTL
+
+  handlers:
+    - name: restart FTL
+      ansible.builtin.systemd_service:
+        name: pihole-rift
+        state: restarted
