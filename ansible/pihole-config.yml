@@ -1,3 +1,5 @@
+# vim: ft=yaml.ansible
+
 - name: Apply Pi-Hole configuration (Metal/LXC)
   hosts:
     - pihole.lan
@@ -26,6 +28,7 @@
   hosts: rift.lan
   vars_files:
     - pihole-wfh-vars.yml
+    - become-vars.yml
   tasks:
     - name: Apply special configuration to work computers
       become: true
