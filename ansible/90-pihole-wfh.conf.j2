@@ -14,8 +14,9 @@
 {% for domain, hosts in work_hosts.items() %}
     {%- for name, host in hosts.items() %}
 
+# Host: {{ name }}
 dhcp-host={{ host['mac'] }},set:wfh,{{ host['ip'] }},,1d
-domain={{ name }}.{{ domain }},{{ host['ip'] }}
+domain={{ domain }},{{ host['ip'] }}
 dhcp-option=tag:wfh,15,
     {% endfor %}
 {% endfor %}
