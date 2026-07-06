@@ -28,3 +28,6 @@ HealthInterval=1m
 HealthRetries=3
 HealthTimeout=3s
 HealthStartPeriod=30s
+
+[Install]
+WantedBy=default.target
