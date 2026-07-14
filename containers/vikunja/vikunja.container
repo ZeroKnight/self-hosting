@@ -1,0 +1,21 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Vikunja Tasks Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Image=docker.io/vikunja/vikunja:2
+PublishPort=3000:3456
+Volume=vikunja-files.volume:/app/vikunja/files
+Volume=vikunja-db.volume:/db
+
+Environment=VIKUNJA_SERVICE_PUBLICURL=https://tasks.ts.dimensionzero.net/
+Environment=VIKUNJA_DATABASE_PATH=/db/vikunja.db
+
+Secret=vikunja-service-secret,type=env,target=VIKUNJA_SERVICE_SECRET
+
+[Install]
+WantedBy=default.target

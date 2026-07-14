@@ -1,0 +1,6 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Vikunja Files Volume
+
+[Volume]
