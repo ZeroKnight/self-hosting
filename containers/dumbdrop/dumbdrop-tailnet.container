@@ -1,25 +1,23 @@
 # vim: ft=systemd
 
 [Unit]
-Description=DumbDrop Container - Public
+Description=DumbDrop Container - Tailnet
 
 Requires=var-mnt-media.mount
 After=var-mnt-media.mount
 
 [Service]
 Restart=on-failure
-Environment=DUMBDROP_PORT=3401
+Environment=DUMBDROP_PORT=3400
 EnvironmentFile=%E/containers/systemd/dumbdrop/dumbdrop.env
 
 [Container]
+EnvironmentFile=./dumbdrop.env
 Image=docker.io/dumbwareio/dumbdrop
 PublishPort=${DUMBDROP_PORT}:3000
 Volume=/var/mnt/media/drop:${UPLOAD_DIR}
 
-EnvironmentFile=./dumbdrop.env
-Environment=ALLOWED_ORIGINS=http://shipyard.lan:${DUMBDROP_PORT},https://drop.zeronet.dimensionzero.net
-
-Secret=dumbdrop-pin,type=env,target=DUMBDROP_PIN
+Environment=ALLOWED_ORIGINS=http://shipyard.lan:${DUMBDROP_PORT},https://drop.ts.dimensionzero.net,https://dumbdrop.time-wyvern.ts.net:${DUMBDROP_PORT}
 
 [Install]
 WantedBy=default.target
