@@ -9,7 +9,7 @@ Restart=on-failure
 
 [Container]
 Pod=opencloud.pod
-Image=docker.io/opencloudeu/opencloud-rolling:3
+Image=docker.io/opencloudeu/opencloud-rolling:7
 Entrypoint=["/bin/sh"]
 Exec=-c 'opencloud init || true; opencloud server'
 
