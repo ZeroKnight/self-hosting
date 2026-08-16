@@ -15,6 +15,17 @@ Volume=vikunja-db.volume:/db
 Environment=VIKUNJA_SERVICE_PUBLICURL=https://tasks.ts.dimensionzero.net/
 Environment=VIKUNJA_DATABASE_PATH=/db/vikunja.db
 
+# NOTE: I'd use my local relay here but the underlying Go library that Vikunja
+# uses is annoying and refuses to do PLAIN login over an insecure connection.
+Environment=VIKUNJA_MAILER_ENABLED=true
+Environment=VIKUNJA_MAILER_FROMEMAIL=tasks@dimensionzero.net
+Environment=VIKUNJA_MAILER_HOST=mail.runbox.com
+Environment=VIKUNJA_MAILER_PORT=465
+Environment=VIKUNJA_MAILER_FORCESSL=true
+Environment=VIKUNJA_MAILER_AUTHTYPE=plain
+
+Secret=vikunja-mailer-username,type=env,target=VIKUNJA_MAILER_USERNAME
+Secret=vikunja-mailer-password,type=env,target=VIKUNJA_MAILER_PASSWORD
 Secret=vikunja-service-secret,type=env,target=VIKUNJA_SERVICE_SECRET
 
 [Install]
