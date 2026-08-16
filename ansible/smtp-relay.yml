@@ -1,0 +1,119 @@
+# vim: ft=yaml.ansible
+
+- name: Set up local SMTP relay
+  hosts: smtp-relay.lan
+  remote_user: root
+  vars_files:
+    - smtp-relay/vault.yml
+  vars:
+    msmtp_upstream_port: 465
+    msmtp_upstream_tls: true
+    msmtp_upstream_starttls: false
+    msmtp_upstream_host: "{{ vault_msmtp_upstream_host }}"
+    msmtp_upstream_user: "{{ vault_msmtp_upstream_user }}"
+    msmtp_upstream_password: "{{ vault_msmtp_upstream_password }}"
+
+    msmtp_credential: msmtp_password
+    msmtp_credential_path: "/etc/{{ msmtp_credential }}"
+
+    msmtpd_interface: 192.168.1.102
+    msmtpd_port: 25
+    msmtpd_auth_user: lanuser
+    msmtpd_auth_password: "{{ vault_msmtpd_auth_password }}"
+
+    msmtpd_credential: msmtpd_auth
+    msmtpd_credential_path: "/etc/{{ msmtpd_credential }}"
+  tasks:
+    - name: Install msmtp
+      ansible.builtin.package:
+        state: present
+        name:
+          - msmtp
+          - msmtp-mta
+
+    - name: Copy /etc/default/msmtpd
+      ansible.builtin.template:
+        src: smtp-relay/msmtpd.env.j2
+        dest: /etc/default/msmtpd
+        mode: "0640"
+        owner: msmtp
+        group: msmtp
+
+    - name: Copy /etc/msmtprc
+      ansible.builtin.template:
+        src: smtp-relay/msmtprc.j2
+        dest: /etc/msmtprc
+        mode: "0640"
+        owner: msmtp
+        group: msmtp
+
+    - name: Check for msmtp credential
+      ansible.builtin.stat:
+        path: "{{ msmtp_credential_path }}"
+      register: stat_msmtp
+
+    - name: Check for msmtpd credential
+      ansible.builtin.stat:
+        path: "{{ msmtpd_credential_path }}"
+      register: stat_msmtpd
+
+    - name: Create credential for msmtp login password
+      when: not stat_msmtp.stat.exists
+      block:
+        - name: Generate encrypted credential for msmtp login password
+          community.general.systemd_creds_encrypt:
+            name: "{{ msmtp_credential }}"
+            secret: "{{ msmtp_upstream_password }}"
+          register: encrypted_msmtp_upstream_password
+
+        - name: Write msmtp login password credential file
+          ansible.builtin.copy:
+            dest: "{{ msmtp_credential_path }}"
+            content: "{{ encrypted_msmtp_upstream_password.value }}"
+            owner: root
+            group: root
+            mode: "0644"
+
+    - name: Create credential for msmtpd auth password
+      when: not stat_msmtpd.stat.exists
+      block:
+        - name: Generate encrypted credential for msmtpd auth password
+          community.general.systemd_creds_encrypt:
+            name: "{{ msmtpd_credential }}"
+            secret: "{{ msmtpd_auth_password }}"
+          register: encrypted_msmtpd_auth_password
+
+        - name: Write msmtpd auth password credential file
+          ansible.builtin.copy:
+            dest: "{{ msmtpd_credential_path }}"
+            content: "{{ encrypted_msmtpd_auth_password.value }}"
+            owner: root
+            group: root
+            mode: "0644"
+
+    - name: Create msmtpd service drop-in directory
+      ansible.builtin.file:
+        path: /etc/systemd/system/msmtpd.service.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Copy msmtpd service drop-in
+      ansible.builtin.template:
+        src: smtp-relay/override.conf.j2
+        dest: /etc/systemd/system/msmtpd.service.d/override.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: daemon reload
+
+    - name: Enable msmtpd service
+      ansible.builtin.systemd_service:
+        name: msmtpd
+        enabled: true
+
+  handlers:
+    - name: daemon reload
+      ansible.builtin.systemd:
+        daemon_reload: true

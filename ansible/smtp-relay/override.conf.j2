@@ -1,0 +1,6 @@
+[Service]
+LoadCredentialEncrypted={{ msmtp_credential }}:{{ msmtp_credential_path }}
+LoadCredentialEncrypted={{ msmtpd_credential }}:{{ msmtpd_credential_path }}
+
+ExecStart=
+ExecStart=/usr/bin/msmtpd --interface=${INTERFACE} --port=${PORT} --log=syslog '--auth={{ msmtpd_auth_user }},cat %d/{{ msmtpd_credential }}'

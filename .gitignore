@@ -11,5 +11,8 @@
 ansible/**/*vault*
 ansible/**/.*vault*
 
+# Encrypted files are okay, though
+!ansible/**/vault.yml
+
 # Private Ansible variables
 ansible/pihole-wfh-vars.yml

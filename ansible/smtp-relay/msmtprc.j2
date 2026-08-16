@@ -1,0 +1,12 @@
+account default
+
+port {{ msmtp_upstream_port }}
+tls {{ msmtp_upstream_tls | ternary('on', 'off') }}
+tls_starttls {{ msmtp_upstream_starttls | ternary('on', 'off') }}
+
+auth on
+host {{ msmtp_upstream_host }}
+user {{ msmtp_upstream_user }}
+passwordeval cat "$CREDENTIALS_DIRECTORY/{{ msmtp_credential }}"
+
+from %F
