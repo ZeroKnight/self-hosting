@@ -17,3 +17,4 @@ Image=ghcr.io/sissbruecker/linkding:1.45.0
 Entrypoint=
 Exec=python manage.py run_huey -f
 Volume=/var/mnt/media/links/linkding:/etc/linkding/data
+Memory=512m

@@ -16,10 +16,13 @@ Restart=on-failure
 [Container]
 Pod=immich.pod
 Image=ghcr.io/immich-app/immich-server:${IMMICH_VERSION}
-EnvironmentFile=./immich.env
-
 Volume=/var/mnt/media/images/immich:/data
 Volume=/etc/localtime:/etc/localtime:ro
+
+Memory=8g
+PodmanArgs=--memory-reservation=6g
+
+EnvironmentFile=./immich.env
 
 # NOTE: Explicitly define healthcheck to work around podman #18904
 HealthCmd=immich-healthcheck

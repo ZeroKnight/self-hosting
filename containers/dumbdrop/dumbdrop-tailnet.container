@@ -15,6 +15,7 @@ EnvironmentFile=%E/containers/systemd/dumbdrop/dumbdrop.env
 EnvironmentFile=./dumbdrop.env
 Image=docker.io/dumbwareio/dumbdrop
 PublishPort=${DUMBDROP_PORT}:3000
+Memory=1g
 Volume=/var/mnt/media/drop:${UPLOAD_DIR}
 
 Environment=ALLOWED_ORIGINS=http://shipyard.lan:${DUMBDROP_PORT},https://drop.ts.dimensionzero.net,https://dumbdrop.time-wyvern.ts.net:${DUMBDROP_PORT}

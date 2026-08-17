@@ -14,6 +14,7 @@ Restart=on-failure
 [Container]
 Image=ghcr.io/sissbruecker/linkding:1.45.0
 PublishPort=3300:9090
+Memory=512m
 Entrypoint=./entrypoint.sh
 Exec=
 

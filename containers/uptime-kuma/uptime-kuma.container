@@ -9,6 +9,7 @@ Restart=on-failure
 [Container]
 Image=docker.io/louislam/uptime-kuma:2-slim
 PublishPort=3010:3001
+Memory=512m
 Volume=uptime-kuma.volume:/app/data
 
 Volume=${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/podman.sock:Z

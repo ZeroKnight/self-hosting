@@ -11,7 +11,10 @@ Restart=on-failure
 Pod=immich.pod
 Image=ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
 Volume=${DB_DATA_LOCATION}:/var/lib/postgresql/data
+
 ShmSize=128M
+Memory=4g
+PodmanArgs=--memory-reservation=2g
 
 EnvironmentFile=./immich.env
 Environment=POSTGRES_PASSWORD=${DB_PASSWORD}

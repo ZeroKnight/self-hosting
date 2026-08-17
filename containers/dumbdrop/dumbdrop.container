@@ -14,6 +14,7 @@ EnvironmentFile=%E/containers/systemd/dumbdrop/dumbdrop.env
 [Container]
 Image=docker.io/dumbwareio/dumbdrop
 PublishPort=${DUMBDROP_PORT}:3000
+Memory=1g
 Volume=/var/mnt/media/drop:${UPLOAD_DIR}
 
 EnvironmentFile=./dumbdrop.env

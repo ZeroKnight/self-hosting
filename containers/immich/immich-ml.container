@@ -14,6 +14,9 @@ Volume=immich-mlcache.volume:/cache
 EnvironmentFile=./immich.env
 AddDevice=nvidia.com/gpu=all
 
+Memory=8g
+PodmanArgs=--memory-reservation=6g
+
 # NOTE: Explicitly define healthcheck to work around podman #18904
 HealthCmd=python3 healthcheck.py
 HealthInterval=2m

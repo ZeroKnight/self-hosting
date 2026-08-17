@@ -7,6 +7,7 @@ After=local-fs.target
 [Container]
 Image=ghcr.io/civilblur/mazanoke:latest
 PublishPort=3474:80
+Memory=128m
 
 [Service]
 Restart=on-failure
