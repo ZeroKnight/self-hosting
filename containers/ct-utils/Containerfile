@@ -1,0 +1,11 @@
+# Very simple container with a handful of utilities I might need for mundane
+# maintenance tasks like taking backups
+
+FROM alpine
+
+RUN --mount=type=cache,target=/var/cache/apk <<EOF
+apk upgrade --update-cache
+apk add zip xz zstd curl rsync findutils sqlite
+EOF
+
+ENTRYPOINT ["/bin/sh"]

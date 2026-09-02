@@ -1,0 +1,16 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Back up UpSnap volume data
+Before=resticprofile.service
+
+[Container]
+Image=ct-utils.build
+Exec=/backup.sh
+
+Volume=./backup.sh:/backup.sh:ro,Z
+Volume=%h/backup:/backup:z
+Volume=upsnap.volume:/data
+
+[Install]
+WantedBy=resticprofile.service

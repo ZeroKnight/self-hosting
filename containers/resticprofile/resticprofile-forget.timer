@@ -1,0 +1,12 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Run resticprofile-forget once a month
+
+[Timer]
+OnCalendar=monthly
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

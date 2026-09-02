@@ -1,0 +1,18 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Forget and prune Podman volume backups
+
+[Container]
+Image=ghcr.io/creativeprojects/resticprofile
+Exec=-n volumes forget
+
+# Ensure a consistent hostname for backup metadata
+HostName=shipyard
+
+Volume=./profiles:/resticprofile:Z
+Volume=%h/backup:/backup:ro,Z
+Volume=%h/restic:/repo:Z
+Volume=%C/restic:/root/.cache/restic:Z
+
+Secret=restic-password-volumes,type=mount,target=password-volumes

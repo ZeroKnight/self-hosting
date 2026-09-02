@@ -1,0 +1,19 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Extract latest Kavita backup
+Before=resticprofile.service
+
+[Service]
+ExecStartPre=-/bin/sh -c "rm -rf %h/backup/volumes/kavita/*"
+
+[Container]
+Image=ct-utils.build
+Exec=-c "ls -1c | head -n 1 | xargs -I {} unzip -o {} -x 'logs/*' -d /backup/volumes/kavita"
+WorkingDir=/kavita/backups
+
+Volume=%h/backup:/backup:z
+Volume=kavita-config.volume:/kavita:ro
+
+[Install]
+WantedBy=resticprofile.service

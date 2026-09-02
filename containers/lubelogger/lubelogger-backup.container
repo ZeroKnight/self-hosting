@@ -1,0 +1,21 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Back up LubeLogger volume data
+Before=resticprofile.service
+
+[Container]
+Image=ct-utils.build
+Exec=/backup.sh
+Network=pasta:-T,8100
+
+Volume=./backup.sh:/backup.sh:ro,Z
+Volume=%h/backup:/backup:z
+Volume=lubelogger-data.volume:/data
+Volume=lubelogger-keys.volume:/keys:ro
+
+Environment=LUBELOGGER_PORT=8100
+Secret=lubelogger-api-key,type=env,target=LUBELOGGER_APIKEY
+
+[Install]
+WantedBy=resticprofile.service

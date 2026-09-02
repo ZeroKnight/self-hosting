@@ -1,0 +1,20 @@
+# vim: ft=systemd
+
+# Reference: https://creativeprojects.github.io/resticprofile/installation/docker/index.html
+
+[Unit]
+Description=Commit Podman volume backups to a restic repository
+
+[Container]
+Image=ghcr.io/creativeprojects/resticprofile
+Exec=-n volumes backup
+
+# Ensure a consistent hostname for backup metadata
+HostName=shipyard
+
+Volume=./profiles:/resticprofile:Z
+Volume=%h/backup:/backup:ro,z
+Volume=%h/restic:/repo:z
+Volume=%C/restic:/root/.cache/restic:Z
+
+Secret=restic-password-volumes,type=mount,target=password-volumes

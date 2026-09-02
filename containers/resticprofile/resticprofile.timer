@@ -1,0 +1,12 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Run resticprofile every day at 3am
+
+[Timer]
+OnCalendar=03:00
+RandomizedDelaySec=30
+Persistent=true
+
+[Install]
+WantedBy=timers.target

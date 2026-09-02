@@ -1,0 +1,21 @@
+# vim: ft=systemd
+
+# Immich does a great job making and rotating database backups on its own, so
+# let's use them. No need for a timer.
+
+[Unit]
+Description=Sync Immich database backups
+Before=resticprofile.service
+
+[Service]
+Type=oneshot
+ExecStartPre=mkdir -p %h/backup/volumes/immich
+ExecStart=/usr/bin/rsync -avv --delete --exclude=.immich ${UPLOAD_LOCATION}/backups/ %h/backup/volumes/immich
+
+# Giving restic uncompressed files will yield better compression/dedupe later
+ExecStart=/bin/bash -c "dir %h/backup/volumes/immich/*.gz | xargs --verbose --max-procs 4 --max-args 2 gunzip -k"
+
+EnvironmentFile=%E/containers/systemd/immich/immich.env
+
+[Install]
+WantedBy=resticprofile.service

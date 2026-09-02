@@ -1,0 +1,8 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Lightweight container with a few tools for maintaining container-based services
+
+[Build]
+ImageTag=ct-utils
+SetWorkingDirectory=%E/containers/systemd/ct-utils

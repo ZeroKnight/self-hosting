@@ -1,0 +1,26 @@
+version: 1
+
+global:
+  initialize: true
+  priority: low
+
+volumes:
+  description: Back up Podman volumes
+  repository: /repo/volumes
+  password-file: /run/secrets/password-volumes
+
+  backup:
+    verbose: true
+    skip-if-unchanged: true
+    source:
+      - /backup/volumes
+    exclude:
+      - immich/*.gz
+      - kavita/logs
+
+  forget:
+    host: true
+    prune: true
+    keep-daily: 60
+    keep-monthly: 12
+    keep-yearly: 3

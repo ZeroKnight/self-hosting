@@ -1,0 +1,17 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Back up Vikunja volume data
+Before=resticprofile.service
+
+[Container]
+Image=ct-utils.build
+Exec=/backup.sh
+
+Volume=./backup.sh:/backup.sh:ro,Z
+Volume=%h/backup:/backup:z
+Volume=vikunja-db.volume:/data/db
+Volume=vikunja-files.volume:/data/files
+
+[Install]
+WantedBy=resticprofile.service
