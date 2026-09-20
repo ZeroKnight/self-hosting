@@ -1,9 +1,10 @@
 # vim: ft=systemd
 
 [Unit]
-Description=Run resticprofile-forget once a month
+Description=Forget (and maybe prune) snapshots in the '%i' restic repository monthly
 
 [Timer]
+Unit=resticprofile-%i@forget.service
 OnCalendar=monthly
 RandomizedDelaySec=300
 Persistent=true

@@ -1,0 +1,7 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Run resticprofile %i on volumes repository
+
+[Container]
+Exec=-n volumes %i

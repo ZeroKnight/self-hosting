@@ -1,9 +1,10 @@
 # vim: ft=systemd
 
 [Unit]
-Description=Run resticprofile every day at 3am
+Description=Back up the '%i' restic repository every day at 3am
 
 [Timer]
+Unit=resticprofile-%i@backup.service
 OnCalendar=03:00
 RandomizedDelaySec=30
 Persistent=true

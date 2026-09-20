@@ -7,7 +7,7 @@ global:
 volumes:
   description: Back up Podman volumes
   repository: /repo/volumes
-  password-file: /run/secrets/password-volumes
+  password-file: /run/secrets/restic-password-volumes
 
   backup:
     verbose: true
@@ -24,3 +24,9 @@ volumes:
     keep-daily: 60
     keep-monthly: 12
     keep-yearly: 3
+
+volumes-b2:
+  inherit: volumes
+  description: Back up Podman volumes to B2
+  repository: 's3:https://s3.us-west-004.backblazeb2.com/dimensionzero-shipyard-volumes'
+  env-file: /run/secrets/b2-zeronet-shipyard-restic-creds

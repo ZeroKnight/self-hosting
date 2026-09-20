@@ -1,0 +1,8 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Run resticprofile %i on volumes-b2 repository
+
+[Container]
+Exec=-n volumes-b2 %i
+Secret=b2-zeronet-shipyard-restic-creds
