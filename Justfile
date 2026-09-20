@@ -10,7 +10,7 @@ update-debservers:
 # Copy quadlet directory to host and refresh units
 [group('podman')]
 push-quadlet dir host='shipyard.lan':
-    scp -r "containers/{{ dir }}" '{{ host }}:.config/containers/systemd'
+    rsync -av --delete "containers/{{ dir }}" '{{ host }}:.config/containers/systemd'
     ssh {{ host }} systemctl --user daemon-reload
 
 # Create Podman secret on container host
