@@ -18,4 +18,5 @@ ExecStart=/bin/bash -c "dir %h/backup/volumes/immich/*.gz | xargs --verbose --ma
 EnvironmentFile=%E/containers/systemd/immich/immich.env
 
 [Install]
-WantedBy=resticprofile.service
+WantedBy=resticprofile-volumes@backup.service
+WantedBy=resticprofile-volumes-b2@backup.service

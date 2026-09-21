@@ -13,4 +13,5 @@ Volume=%h/backup:/backup:z
 Volume=upsnap.volume:/data
 
 [Install]
-WantedBy=resticprofile.service
+WantedBy=resticprofile-volumes@backup.service
+WantedBy=resticprofile-volumes-b2@backup.service

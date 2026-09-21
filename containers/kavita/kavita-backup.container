@@ -16,4 +16,5 @@ Volume=%h/backup:/backup:z
 Volume=kavita-config.volume:/kavita:ro
 
 [Install]
-WantedBy=resticprofile.service
+WantedBy=resticprofile-volumes@backup.service
+WantedBy=resticprofile-volumes-b2@backup.service

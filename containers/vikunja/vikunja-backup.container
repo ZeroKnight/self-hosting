@@ -14,4 +14,5 @@ Volume=vikunja-db.volume:/data/db
 Volume=vikunja-files.volume:/data/files
 
 [Install]
-WantedBy=resticprofile.service
+WantedBy=resticprofile-volumes@backup.service
+WantedBy=resticprofile-volumes-b2@backup.service

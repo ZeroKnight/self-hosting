@@ -18,4 +18,5 @@ Environment=LUBELOGGER_PORT=8100
 Secret=lubelogger-api-key,type=env,target=LUBELOGGER_APIKEY
 
 [Install]
-WantedBy=resticprofile.service
+WantedBy=resticprofile-volumes@backup.service
+WantedBy=resticprofile-volumes-b2@backup.service
