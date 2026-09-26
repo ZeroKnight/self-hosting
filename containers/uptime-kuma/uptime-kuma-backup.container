@@ -2,7 +2,8 @@
 
 [Unit]
 Description=Back up Uptime Kuma volume data
-Before=resticprofile.service
+Before=resticprofile-volumes@backup.service
+Before=resticprofile-volumes-b2@backup.service
 
 [Container]
 Image=ct-utils.build

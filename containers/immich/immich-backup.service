@@ -5,7 +5,8 @@
 
 [Unit]
 Description=Sync Immich database backups
-Before=resticprofile.service
+Before=resticprofile-volumes@backup.service
+Before=resticprofile-volumes-b2@backup.service
 
 [Service]
 Type=oneshot

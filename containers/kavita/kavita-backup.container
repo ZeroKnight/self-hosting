@@ -2,7 +2,8 @@
 
 [Unit]
 Description=Extract latest Kavita backup
-Before=resticprofile.service
+Before=resticprofile-volumes@backup.service
+Before=resticprofile-volumes-b2@backup.service
 
 [Service]
 ExecStartPre=-/bin/sh -c "rm -rf %h/backup/volumes/kavita/*"
