@@ -1,5 +1,8 @@
 #!/usr/bin/env -S just --justfile
 
+@default:
+    just --list
+
 # Bulk update Debian hosts
 [working-directory('ansible')]
 update-debservers:
@@ -9,8 +12,10 @@ update-debservers:
 
 # Copy quadlet directory to host and refresh units
 [group('podman')]
-push-quadlet dir host='shipyard.lan':
-    rsync -av --delete "containers/{{ dir }}" '{{ host }}:.config/containers/systemd'
+[arg('host', short='h', long='host')]
+[arg('dirs', pattern='.+')]
+push-quadlet host='shipyard.lan' +dirs='':
+    rsync -av --delete {{ prepend('containers/', dirs) }} '{{ host }}:.config/containers/systemd'
     ssh {{ host }} systemctl --user daemon-reload
 
 # Create Podman secret on container host
