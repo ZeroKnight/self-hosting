@@ -9,6 +9,7 @@ Restart=on-failure
 [Container]
 Image=docker.io/vikunja/vikunja:2
 PublishPort=3000:3456
+Pull=newer
 Volume=vikunja-files.volume:/app/vikunja/files
 Volume=vikunja-db.volume:/db
 Memory=128m

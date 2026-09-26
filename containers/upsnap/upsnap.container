@@ -5,6 +5,7 @@ Description=UpSnap Wake on LAN Container
 
 [Container]
 Image=ghcr.io/seriousm4x/upsnap:5
+Pull=newer
 Network=host
 Volume=upsnap.volume:/app/pb_data
 
