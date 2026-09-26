@@ -7,7 +7,8 @@
 [working-directory('ansible')]
 update-debservers:
     @echo '{{ CYAN }}Updating Debian hosts...{{ NORMAL }}'
-    ansible debserver --inventory hosts.ini --user root --forks 8 -m apt -a \
+    ansible debserver --inventory hosts.ini --user root --forks 8 --timeout 5 \
+        -m apt -a \
         'update_cache=yes upgrade=yes autoclean=true autoremove=true'
 
 # Copy quadlet directory to host and refresh units
