@@ -1,0 +1,16 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Metadata/Image Proxy (January) Container
+
+[Service]
+Restart=on-failure
+EnvironmentFile=%E/containers/systemd/stoat/stoat.env
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/proxy:v${BACKEND_VERSION}
+RunInit=true
+
+Volume=./Revolt.toml:/Revolt.toml:Z
+EnvironmentFile=./secrets.env

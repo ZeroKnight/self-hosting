@@ -1,0 +1,14 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Web App Container
+
+[Service]
+Restart=on-failure
+EnvironmentFile=%E/containers/systemd/stoat/stoat.env
+
+[Container]
+Pod=stoat.pod
+Image=stoat-web.build
+Volume=/app/dist_injected
+EnvironmentFile=./stoat-web.env

@@ -1,0 +1,12 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Build unit for Stoat for-web container patches
+
+[Service]
+EnvironmentFile=%E/containers/systemd/stoat/stoat.env
+
+[Build]
+SetWorkingDirectory=./web
+PodmanArgs=--build-arg=web_tag=${WEB_VERSION}
+ImageTag=stoat-web:${WEB_VERSION}-patched

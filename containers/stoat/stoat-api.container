@@ -1,0 +1,19 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat API Container
+
+Requires=stoat-db.container stoat-valkey.container stoat-mq.container
+After=stoat-db.container stoat-valkey.container stoat-mq.container
+
+[Service]
+Restart=on-failure
+EnvironmentFile=%E/containers/systemd/stoat/stoat.env
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/api:v${BACKEND_VERSION}
+RunInit=true
+
+Volume=./Revolt.toml:/Revolt.toml:Z
+EnvironmentFile=./secrets.env

@@ -16,3 +16,7 @@ ansible/**/.*vault*
 
 # Private Ansible variables
 ansible/pihole-wfh-vars.yml
+
+# Private Stoat files
+containers/stoat/Revolt.toml
+containers/stoat/livekit.yml

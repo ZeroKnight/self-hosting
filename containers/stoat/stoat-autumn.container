@@ -1,0 +1,19 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat File Server (Autumn) Container
+
+Requires=stoat-db.container stoat-createbuckets.container
+After=stoat-db.container stoat-createbuckets.container
+
+[Service]
+Restart=on-failure
+EnvironmentFile=%E/containers/systemd/stoat/stoat.env
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/file-server:v${BACKEND_VERSION}
+RunInit=true
+
+Volume=./Revolt.toml:/Revolt.toml:Z
+EnvironmentFile=./secrets.env

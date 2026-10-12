@@ -1,0 +1,25 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat RabbitMQ Container
+
+Requires=var-mnt-stoat-mq.mount
+After=var-mnt-stoat-mq.mount
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/rabbitmq:4-alpine
+Volume=/var/mnt/stoat/mq:/var/lib/rabbitmq
+
+Environment=RABBITMQ_DEFAULT_USER=rabbituser
+Secret=stoat-mq-password,type=env,target=RABBITMQ_DEFAULT_PASS
+
+Notify=healthy
+HealthCmd=rabbitmq-diagnostics -q ping
+HealthInterval=15s
+HealthTimeout=15s
+HealthStartPeriod=20s
+HealthRetries=3

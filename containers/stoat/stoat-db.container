@@ -1,0 +1,29 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Database Container
+
+Requires=var-mnt-stoat-db.mount
+After=var-mnt-stoat-db.mount
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/mongo:8
+Exec=--config /etc/mongo/mongod.conf
+
+Volume=/var/mnt/stoat/db:/data/db
+Volume=./mongo:/etc/mongo:Z,ro
+
+Notify=healthy
+HealthCmd=echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+HealthInterval=15s
+HealthTimeout=15s
+HealthStartPeriod=15s
+HealthRetries=5
+
+# Mongo waits for command executions to finish after receiving SIGTERM, so give
+# it some grace before KILLing it
+StopTimeout=60

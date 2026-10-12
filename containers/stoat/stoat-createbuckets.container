@@ -1,0 +1,19 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat - Create buckets for minio
+
+Requires=stoat-s3.container
+After=stoat-s3.container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/pgsty/mc
+Volume=./createbuckets.sh:/usr/local/bin/createbuckets.sh:Z,ro
+Entrypoint=createbuckets.sh
+
+Environment=MINIO_ROOT_USER=minioautumn
+Secret=stoat-s3-password,type=env,target=MINIO_ROOT_PASSWORD

@@ -1,0 +1,7 @@
+ARG web_tag
+
+FROM ghcr.io/stoatchat/for-web:${web_tag}
+
+# Patch inject.js so that it doesn't try to remove the entire dist_injected
+# directory so that we can instead mount it as an ephemeral unnamed volume.
+RUN sed -i '/rmSync(OUT_DIR/d' /app/inject.js

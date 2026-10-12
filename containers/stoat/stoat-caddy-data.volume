@@ -1,0 +1,6 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Caddy Data Volume
+
+[Volume]

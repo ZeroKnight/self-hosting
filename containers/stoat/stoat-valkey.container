@@ -1,0 +1,11 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat ValKey Container
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/valkey/valkey:9-alpine

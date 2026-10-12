@@ -1,0 +1,16 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat Gifbox Container
+
+[Service]
+Restart=on-failure
+EnvironmentFile=%E/containers/systemd/stoat/stoat.env
+
+[Container]
+Pod=stoat.pod
+Image=ghcr.io/stoatchat/gifbox:v${BACKEND_VERSION}
+RunInit=true
+
+Volume=./Revolt.toml:/Revolt.toml:Z
+EnvironmentFile=./secrets.env

@@ -1,0 +1,20 @@
+# vim: ft=systemd
+
+[Unit]
+Description=Stoat S3 Storage Container
+
+Requires=var-mnt-stoat-data.mount
+After=var-mnt-stoat-data.mount
+
+[Service]
+Restart=on-failure
+
+[Container]
+Pod=stoat.pod
+Image=docker.io/pgsty/silo
+Exec=server /data --console-address ':9001'
+Volume=/var/mnt/stoat/data/silo:/data
+
+Environment=MINIO_DOMAIN=localhost
+Environment=MINIO_ROOT_USER=minioautumn
+Secret=stoat-s3-password,type=env,target=MINIO_ROOT_PASSWORD
