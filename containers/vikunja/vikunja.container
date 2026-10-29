@@ -17,6 +17,10 @@ Memory=128m
 Environment=VIKUNJA_SERVICE_PUBLICURL=https://tasks.ts.dimensionzero.net/
 Environment=VIKUNJA_DATABASE_PATH=/db/vikunja.db
 
+# Read proxied client's IP from the `X-Forwarded-For` header
+Environment=VIKUNJA_SERVICE_IPEXTRACTIONMETHOD=xff
+Environment=VIKUNJA_SERVICE_TRUSTEDPROXIES=192.168.1.100
+
 # NOTE: I'd use my local relay here but the underlying Go library that Vikunja
 # uses is annoying and refuses to do PLAIN login over an insecure connection.
 Environment=VIKUNJA_MAILER_ENABLED=true
