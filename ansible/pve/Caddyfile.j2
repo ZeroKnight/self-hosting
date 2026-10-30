@@ -1,0 +1,7 @@
+:80 {
+    reverse_proxy https://:8006 {
+        transport http {
+            tls_server_name {{ pve_domain_ts }}
+        }
+    }
+}

@@ -1,0 +1,53 @@
+# vim: ft=yaml.ansible
+
+- name: Set up Proxmox Virtual Environment
+  hosts:
+    - pve.lan
+  remote_user: root
+  vars:
+    pve_domain_ts: pve.ts.dimensionzero.net
+  tasks:
+    - name: Install Caddy
+      become: true
+      ansible.builtin.package:
+        name: caddy
+        state: present
+
+    - name: Copy Caddyfile
+      ansible.builtin.template:
+        src: pve/Caddyfile.j2
+        dest: /etc/caddy/Caddyfile
+        validate: caddy validate --adapter caddyfile --config %s
+        owner: root
+        group: root
+        mode: "0644"
+      notify: reload caddy
+      tags: proxy
+
+    - name: Copy Caddy service override
+      ansible.builtin.copy:
+        src: pve/caddy.service.d
+        dest: /etc/systemd/service/caddy.service.d
+        owner: root
+        group: root
+        mode: "0644"
+        directory_mode: "0755"
+      notify:
+        - daemon reload
+        - restart caddy
+      tags: proxy
+
+  handlers:
+    - name: daemon reload
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: reload caddy
+      ansible.builtin.systemd:
+        name: caddy
+        state: reloaded
+
+    - name: restart caddy
+      ansible.builtin.systemd:
+        name: caddy
+        state: restarted
